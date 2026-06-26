@@ -347,7 +347,7 @@
             <span class="post-date">${formatDate(post.date)}</span>
           </div>
           <h2 class="post-title">${post.title}</h2>
-          <p class="post-excerpt">${post.excerpt || post.content.substring(0, 160).replace(/<[^>]*>/g,'') + '…'}</p>
+          <p class="post-excerpt">${post.excerpt || post.content.replace(/<[^>]*>/g,'').substring(0, 160) + '…'}</p>
           <a class="post-read-more" onclick="openPost(${post.id})">Read Article →</a>
         </div>
       `;
@@ -382,7 +382,12 @@
     document.getElementById('modalTag').textContent = post.category || 'General';
     document.getElementById('modalDate').textContent = formatDate(post.date);
     document.getElementById('modalTitle').innerHTML = post.title;
-    document.getElementById('modalText').innerHTML = post.content.split('\n').filter(l => l.trim()).map(l => `<p>${l}</p>`).join('');
+    // Render rich HTML content (from Quill) or fallback to plain text
+    const content = post.content || '';
+    const isRichHTML = /<[a-z][\s\S]*>/i.test(content);
+    document.getElementById('modalText').innerHTML = isRichHTML
+      ? content
+      : content.split('\n').filter(l => l.trim()).map(l => `<p>${l}</p>`).join('');
 
     document.getElementById('postModal').classList.add('open');
     document.body.style.overflow = 'hidden';

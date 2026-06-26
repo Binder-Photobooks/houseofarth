@@ -244,6 +244,90 @@
     .confirm-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.6; }
     .confirm-actions { display: flex; gap: 12px; justify-content: center; }
 
+    /* ── RICH TEXT EDITOR ── */
+    .ql-toolbar.ql-snow {
+      border: 1px solid var(--warm-grey) !important;
+      border-bottom: none !important;
+      background: var(--off-white);
+      padding: 10px 12px !important;
+      font-family: var(--font-body) !important;
+      flex-wrap: wrap;
+    }
+    .ql-container.ql-snow {
+      border: 1px solid var(--warm-grey) !important;
+      border-top: none !important;
+      font-family: var(--font-body) !important;
+      font-size: 14px;
+    }
+    .ql-editor {
+      min-height: 280px;
+      line-height: 1.75;
+      color: var(--charcoal);
+      padding: 16px 18px !important;
+    }
+    .ql-editor:focus { outline: none; }
+    .ql-container.ql-snow:focus-within {
+      border-color: var(--gold) !important;
+    }
+    .ql-toolbar.ql-snow:focus-within,
+    .ql-container.ql-snow:focus-within ~ .ql-toolbar {
+      border-color: var(--gold) !important;
+    }
+    /* Gold accent on toolbar buttons when active */
+    .ql-snow .ql-active .ql-stroke,
+    .ql-snow .ql-picker-label:hover .ql-stroke,
+    .ql-snow button:hover .ql-stroke { stroke: var(--gold) !important; }
+    .ql-snow .ql-active .ql-fill,
+    .ql-snow button:hover .ql-fill { fill: var(--gold) !important; }
+    .ql-snow .ql-active,
+    .ql-snow .ql-picker-label:hover,
+    .ql-snow button:hover { color: var(--gold) !important; }
+    .ql-snow .ql-picker-options { border: 1px solid var(--warm-grey) !important; }
+    /* In-body images */
+    .ql-editor img { max-width: 100%; height: auto; border: 1px solid var(--warm-grey); display: block; margin: 12px 0; }
+    /* Image insert button in toolbar */
+    .ql-image-btn { font-size: 13px !important; }
+    /* Editor wrapper border focus highlight */
+    .editor-quill-wrap:focus-within .ql-toolbar.ql-snow { border-color: var(--gold) !important; }
+    .editor-quill-wrap:focus-within .ql-container.ql-snow { border-color: var(--gold) !important; }
+    /* Image modal */
+    .img-modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); z-index: 99999;
+      align-items: center; justify-content: center;
+    }
+    .img-modal-overlay.open { display: flex; }
+    .img-modal-box {
+      background: var(--white); padding: 36px 32px; width: 480px; max-width: 95vw;
+    }
+    .img-modal-box h3 {
+      font-family: var(--font-display); font-size: 22px; font-weight: 400;
+      color: var(--dark); margin-bottom: 20px;
+    }
+    .img-modal-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid var(--warm-grey); }
+    .img-tab {
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 10px 18px; cursor: pointer; color: var(--text-muted);
+      border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 600;
+    }
+    .img-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .img-tab-panel { display: none; }
+    .img-tab-panel.active { display: block; }
+    .img-modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+    /* drop zone inside modal */
+    .modal-drop-zone {
+      border: 1.5px dashed var(--warm-grey); padding: 28px; text-align: center;
+      cursor: pointer; transition: 0.2s; position: relative; background: var(--off-white);
+    }
+    .modal-drop-zone:hover, .modal-drop-zone.drag-over { border-color: var(--gold); background: rgba(200,169,110,0.05); }
+    .modal-drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .modal-drop-zone p { font-size: 13px; color: var(--text-muted); }
+    .modal-drop-zone small { font-size: 11px; color: var(--mid-grey); }
+    .img-preview-thumb {
+      max-height: 140px; max-width: 100%; display: block;
+      margin: 12px auto 0; border: 1px solid var(--warm-grey);
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 800px) {
       .admin-layout { grid-template-columns: 1fr; }
@@ -252,6 +336,8 @@
       .form-row { grid-template-columns: 1fr; }
     }
   </style>
+  <!-- Quill Rich Text Editor -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
 </head>
 <body>
 
@@ -305,14 +391,51 @@
   </div>
 </div>
 
+<!-- IMAGE INSERT MODAL -->
+<div class="img-modal-overlay" id="imgInsertModal">
+  <div class="img-modal-box">
+    <h3>Insert Image</h3>
+    <div class="img-modal-tabs">
+      <div class="img-tab active" onclick="switchImgTab('upload', this)">Upload File</div>
+      <div class="img-tab" onclick="switchImgTab('url', this)">From URL</div>
+    </div>
+    <!-- Upload tab -->
+    <div class="img-tab-panel active" id="tab-upload">
+      <div class="modal-drop-zone" id="modalDropZone"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleModalDrop(event)">
+        <input type="file" accept="image/*" onchange="handleModalFileSelect(event)">
+        <p>Drag &amp; drop an image or <strong>click to browse</strong></p>
+        <small>JPG, PNG, WebP, GIF — max visual quality preserved</small>
+        <img class="img-preview-thumb" id="modalThumb" src="" alt="" style="display:none">
+      </div>
+    </div>
+    <!-- URL tab -->
+    <div class="img-tab-panel" id="tab-url">
+      <label class="form-label">Image URL</label>
+      <input class="form-input" id="imgUrlInput" type="url" placeholder="https://example.com/image.jpg" style="width:100%;margin-top:8px">
+      <img class="img-preview-thumb" id="modalUrlThumb" src="" alt="" style="display:none;margin-top:12px">
+    </div>
+    <div class="img-modal-actions">
+      <button class="btn btn-outline" onclick="closeImgModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmInsertImage()">Insert Image</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<!-- Quill JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 <script>
   const STORAGE_KEY = 'arth_blog_posts';
   let currentId = null;
   let currentImageData = null;
   let pendingDeleteId = null;
+  let quill = null;
+  let pendingInlineImage = null;
 
   // ── STORAGE ──
   function getPosts() {
@@ -358,11 +481,39 @@
     return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
-  // ── EDITOR ──
+  // ── QUILL INIT ──
+  function initQuill(content) {
+    setTimeout(() => {
+      if (!document.getElementById('quillEditor')) return;
+      quill = new Quill('#quillEditor', {
+        theme: 'snow',
+        placeholder: 'Write your post content here…',
+        modules: {
+          toolbar: {
+            container: [
+              [{ header: [1, 2, 3, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ color: [] }, { background: [] }],
+              [{ align: [] }],
+              [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+              ['blockquote', 'code-block'],
+              ['link', 'image'],
+              ['clean']
+            ],
+            handlers: { image: openImgModal }
+          }
+        }
+      });
+      if (content) quill.root.innerHTML = content;
+    }, 60);
+  }
+
+  // ── EDITOR BUILD ──
   function buildEditor(post) {
     const isNew = !post;
     currentId = post ? post.id : null;
     currentImageData = post ? post.image || null : null;
+    quill = null;
 
     document.getElementById('welcomeScreen').style.display = 'none';
     const wrap = document.getElementById('editorWrap');
@@ -378,12 +529,10 @@
         </div>
       </div>
       <div class="editor-form">
-
         <div class="form-group">
           <label class="form-label">Post Title *</label>
           <input class="form-input" id="f-title" type="text" placeholder="e.g. The Art of Letterpress Printing" value="${post ? escapeAttr(post.title) : ''}">
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Category</label>
@@ -395,12 +544,10 @@
             <input class="form-input" id="f-date" type="date" value="${post ? post.date.split('T')[0] : new Date().toISOString().split('T')[0]}">
           </div>
         </div>
-
         <div class="form-group">
           <label class="form-label">Excerpt <span style="font-weight:300;text-transform:none;letter-spacing:0">(shown in card preview)</span></label>
           <input class="form-input" id="f-excerpt" type="text" maxlength="200" placeholder="A short, enticing summary of the post…" value="${post ? escapeAttr(post.excerpt || '') : ''}">
         </div>
-
         <div class="form-group">
           <label class="form-label">Cover Image</label>
           <div class="image-upload-area" id="uploadArea"
@@ -419,37 +566,34 @@
             </div>
           </div>
         </div>
-
         <div class="form-group">
           <label class="form-label">Content *</label>
-          <textarea class="form-textarea" id="f-content" placeholder="Write your post content here. Each paragraph on a new line will be formatted automatically on the blog…">${post ? post.content : ''}</textarea>
-          <span class="form-hint">Each new line becomes a paragraph. Basic formatting supported.</span>
+          <div class="editor-quill-wrap" id="editorQuillWrap">
+            <div id="quillEditor"></div>
+          </div>
+          <span class="form-hint">Full formatting toolbar: headings, bold, italic, colour, lists, links, and inline image embedding (📷 button).</span>
         </div>
-
       </div>
     `;
 
-    // Pre-fill existing image
     if (currentImageData) {
       document.getElementById('uploadPrompt').style.display = 'none';
-      const pw = document.getElementById('imgPreviewWrap');
-      pw.style.display = 'inline-block';
+      document.getElementById('imgPreviewWrap').style.display = 'inline-block';
       document.getElementById('imgPreview').src = currentImageData;
     }
 
+    initQuill(post ? (post.content || '') : '');
     renderSidebar();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function startNew() { buildEditor(null); }
-
   function editPost(id) {
     const post = getPosts().find(p => p.id === id);
     if (post) buildEditor(post);
   }
-
   function cancelEdit() {
-    currentId = null; currentImageData = null;
+    currentId = null; currentImageData = null; quill = null;
     document.getElementById('welcomeScreen').style.display = 'flex';
     document.getElementById('editorWrap').style.display = 'none';
     renderSidebar();
@@ -457,9 +601,10 @@
 
   function savePost() {
     const title = document.getElementById('f-title').value.trim();
-    const content = document.getElementById('f-content').value.trim();
+    const content = quill ? quill.root.innerHTML.trim() : '';
+    const textOnly = quill ? quill.getText().trim() : '';
     if (!title) { showToast('Please enter a title.', 'error'); return; }
-    if (!content) { showToast('Please enter some content.', 'error'); return; }
+    if (!textOnly) { showToast('Please enter some content.', 'error'); return; }
 
     const posts = getPosts();
     const postData = {
@@ -482,33 +627,44 @@
 
     savePosts(posts);
     showToast('Post published successfully!', 'success');
-    renderSidebar();
-
-    // Rebuild editor to reflect saved state
     buildEditor(postData);
   }
 
-  // ── IMAGE ──
+  // ── IMAGE COMPRESSION UTILITY ──
+  function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX = 1400;
+        let w = img.width, h = img.height;
+        if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+        if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        callback(canvas.toDataURL('image/webp', 0.82));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── COVER IMAGE ──
   function handleImageUpload(e) {
     const file = e.target.files[0];
-    if (file) processImage(file);
+    if (file) compressImage(file, function(data) {
+      currentImageData = data;
+      document.getElementById('uploadPrompt').style.display = 'none';
+      document.getElementById('imgPreviewWrap').style.display = 'inline-block';
+      document.getElementById('imgPreview').src = data;
+    });
   }
   function handleDrop(e) {
     e.preventDefault();
     document.getElementById('uploadArea').classList.remove('drag-over');
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) processImage(file);
-  }
-  function processImage(file) {
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      currentImageData = ev.target.result;
-      document.getElementById('uploadPrompt').style.display = 'none';
-      const pw = document.getElementById('imgPreviewWrap');
-      pw.style.display = 'inline-block';
-      document.getElementById('imgPreview').src = currentImageData;
-    };
-    reader.readAsDataURL(file);
+    if (file && file.type.startsWith('image/')) handleImageUpload({ target: { files: [file] } });
   }
   function removeImage(e) {
     e.stopPropagation();
@@ -518,15 +674,69 @@
     document.getElementById('imgPreview').src = '';
   }
 
+  // ── INLINE IMAGE MODAL ──
+  function openImgModal() {
+    pendingInlineImage = null;
+    document.getElementById('modalThumb').style.display = 'none';
+    document.getElementById('modalThumb').src = '';
+    document.getElementById('imgUrlInput').value = '';
+    document.getElementById('modalUrlThumb').style.display = 'none';
+    document.querySelectorAll('.img-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+    document.querySelectorAll('.img-tab-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
+    document.getElementById('imgInsertModal').classList.add('open');
+  }
+  function closeImgModal() {
+    document.getElementById('imgInsertModal').classList.remove('open');
+    pendingInlineImage = null;
+  }
+  function switchImgTab(tab, el) {
+    document.querySelectorAll('.img-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.img-tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  }
+  function handleModalFileSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    compressImage(file, function(data) {
+      pendingInlineImage = data;
+      const thumb = document.getElementById('modalThumb');
+      thumb.src = data; thumb.style.display = 'block';
+    });
+  }
+  function handleModalDrop(e) {
+    e.preventDefault();
+    document.getElementById('modalDropZone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleModalFileSelect({ target: { files: [file] } });
+  }
+  document.addEventListener('input', function(e) {
+    if (e.target.id === 'imgUrlInput') {
+      const url = e.target.value.trim();
+      const thumb = document.getElementById('modalUrlThumb');
+      if (url) { thumb.src = url; thumb.style.display = 'block'; pendingInlineImage = url; }
+      else { thumb.style.display = 'none'; pendingInlineImage = null; }
+    }
+  });
+  function confirmInsertImage() {
+    if (!pendingInlineImage) { showToast('Please select or enter an image first.', 'error'); return; }
+    if (quill) {
+      const range = quill.getSelection(true);
+      const idx = range ? range.index : quill.getLength();
+      quill.insertEmbed(idx, 'image', pendingInlineImage);
+      quill.setSelection(idx + 1);
+    }
+    closeImgModal();
+    showToast('Image inserted into content.', 'success');
+  }
+
   // ── DELETE ──
   function confirmDelete(id) {
     pendingDeleteId = id;
     document.getElementById('confirmOverlay').classList.add('open');
     document.getElementById('confirmDeleteBtn').onclick = function() {
-      const posts = getPosts().filter(p => p.id !== pendingDeleteId);
-      savePosts(posts);
-      closeConfirm();
-      cancelEdit();
+      savePosts(getPosts().filter(p => p.id !== pendingDeleteId));
+      closeConfirm(); cancelEdit();
       showToast('Post deleted.', 'success');
     };
   }
