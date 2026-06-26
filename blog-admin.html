@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Admin | Arth अर्थ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --white: #FFFFFF;
+      --off-white: #F8F6F2;
+      --warm-grey: #E8E4DE;
+      --mid-grey: #B8B2A8;
+      --charcoal: #1A1A1A;
+      --dark: #111111;
+      --gold: #C8A96E;
+      --gold-light: #E8D5B0;
+      --text-body: #3A3A3A;
+      --text-muted: #888880;
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+      --sidebar: 300px;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font-body);
+      background: var(--off-white);
+      color: var(--charcoal);
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── TOP BAR ── */
+    .admin-topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--dark); color: var(--white);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 32px; box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+    }
+    .admin-topbar-left { display: flex; align-items: center; gap: 20px; }
+    .admin-logo {
+      font-family: var(--font-display); font-size: 20px; font-weight: 500;
+      letter-spacing: 0.04em; color: var(--white); text-decoration: none;
+    }
+    .admin-logo span { color: var(--gold); }
+    .admin-badge {
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--gold); background: rgba(200,169,110,0.15);
+      padding: 4px 10px; border: 1px solid rgba(200,169,110,0.3);
+    }
+    .admin-topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-btn {
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-weight: 600; padding: 8px 18px; border: none; cursor: pointer;
+      font-family: var(--font-body); text-decoration: none; display: inline-block;
+      transition: 0.2s;
+    }
+    .topbar-btn-outline {
+      background: transparent; color: rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .topbar-btn-outline:hover { color: var(--white); border-color: var(--white); }
+    .topbar-btn-gold { background: var(--gold); color: var(--white); }
+    .topbar-btn-gold:hover { background: #b8963e; }
+
+    /* ── LAYOUT ── */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: var(--sidebar) 1fr;
+      min-height: 100vh;
+      padding-top: 56px;
+    }
+
+    /* ── SIDEBAR ── */
+    .admin-sidebar {
+      background: var(--white);
+      border-right: 1px solid var(--warm-grey);
+      padding: 32px 0;
+      position: sticky; top: 56px; height: calc(100vh - 56px);
+      overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+    .sidebar-section-label {
+      font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--mid-grey); font-weight: 600; padding: 0 24px;
+      margin-bottom: 12px; margin-top: 28px;
+    }
+    .sidebar-section-label:first-child { margin-top: 0; }
+    .sidebar-new-btn {
+      margin: 0 16px 8px; padding: 12px 16px;
+      background: var(--charcoal); color: var(--white);
+      border: none; cursor: pointer; font-family: var(--font-body);
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; display: flex; align-items: center; gap: 8px;
+      transition: background 0.2s; width: calc(100% - 32px);
+    }
+    .sidebar-new-btn:hover { background: var(--gold); }
+    .post-list { flex: 1; overflow-y: auto; }
+    .post-list-item {
+      padding: 14px 24px; border-bottom: 1px solid var(--off-white);
+      cursor: pointer; transition: background 0.15s;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .post-list-item:hover { background: var(--off-white); }
+    .post-list-item.active { background: #FBF9F5; border-left: 3px solid var(--gold); padding-left: 21px; }
+    .post-list-title {
+      font-family: var(--font-display); font-size: 15px; font-weight: 400;
+      color: var(--dark); line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .post-list-meta {
+      font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; align-items: center;
+    }
+    .post-list-tag {
+      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--gold-light); padding: 2px 7px;
+    }
+    .post-empty-sidebar {
+      padding: 32px 24px; text-align: center; color: var(--mid-grey);
+      font-size: 13px; line-height: 1.7;
+    }
+
+    /* ── MAIN EDITOR ── */
+    .admin-main { padding: 40px 48px; max-width: 900px; }
+
+    .editor-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 36px; padding-bottom: 24px;
+      border-bottom: 1px solid var(--warm-grey);
+    }
+    .editor-header h2 {
+      font-family: var(--font-display); font-size: 28px; font-weight: 300; color: var(--dark);
+    }
+    .editor-header h2 em { font-style: italic; color: var(--gold); }
+    .editor-actions { display: flex; gap: 10px; }
+    .btn {
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-weight: 600; padding: 10px 22px; border: none; cursor: pointer;
+      font-family: var(--font-body); transition: 0.2s;
+    }
+    .btn-primary { background: var(--charcoal); color: var(--white); }
+    .btn-primary:hover { background: var(--gold); }
+    .btn-danger { background: transparent; color: #c0392b; border: 1px solid #c0392b; }
+    .btn-danger:hover { background: #c0392b; color: var(--white); }
+    .btn-outline { background: transparent; color: var(--charcoal); border: 1px solid var(--warm-grey); }
+    .btn-outline:hover { border-color: var(--charcoal); }
+
+    /* ── FORM ── */
+    .editor-form { display: flex; flex-direction: column; gap: 28px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-label {
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-muted); font-weight: 600;
+    }
+    .form-input, .form-select, .form-textarea {
+      padding: 13px 16px; border: 1px solid var(--warm-grey);
+      background: var(--white); font-family: var(--font-body);
+      font-size: 14px; color: var(--charcoal); outline: none;
+      transition: border-color 0.2s; border-radius: 0; -webkit-appearance: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
+    .form-textarea { height: 280px; resize: vertical; line-height: 1.75; }
+    .form-hint { font-size: 11px; color: var(--mid-grey); }
+
+    /* ── IMAGE UPLOAD ── */
+    .image-upload-area {
+      border: 1.5px dashed var(--warm-grey); background: var(--white);
+      padding: 32px; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s; position: relative;
+    }
+    .image-upload-area:hover, .image-upload-area.drag-over {
+      border-color: var(--gold); background: rgba(200,169,110,0.04);
+    }
+    .image-upload-area input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+    }
+    .upload-icon {
+      width: 48px; height: 48px; border: 1.5px solid var(--gold);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; color: var(--gold); font-size: 20px;
+    }
+    .upload-label { font-size: 13px; color: var(--text-body); margin-bottom: 6px; }
+    .upload-sub { font-size: 11px; color: var(--mid-grey); }
+    .img-preview-wrap { position: relative; display: inline-block; margin-top: 16px; }
+    .img-preview {
+      max-height: 200px; max-width: 100%; display: block;
+      border: 1px solid var(--warm-grey); margin: 0 auto;
+    }
+    .img-remove {
+      position: absolute; top: -10px; right: -10px;
+      background: var(--charcoal); color: var(--white);
+      border: none; width: 26px; height: 26px; border-radius: 50%;
+      cursor: pointer; font-size: 14px; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .img-remove:hover { background: #c0392b; }
+
+    /* ── WELCOME SCREEN ── */
+    .welcome-screen {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 60vh; text-align: center; gap: 20px;
+    }
+    .welcome-icon {
+      width: 72px; height: 72px; border: 1.5px solid var(--gold);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 28px; margin-bottom: 8px;
+    }
+    .welcome-screen h2 {
+      font-family: var(--font-display); font-size: 32px; font-weight: 300; color: var(--dark);
+    }
+    .welcome-screen h2 em { font-style: italic; color: var(--gold); }
+    .welcome-screen p { font-size: 14px; color: var(--text-muted); max-width: 380px; line-height: 1.7; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 32px; right: 32px; z-index: 9999;
+      background: var(--charcoal); color: var(--white);
+      padding: 14px 24px; font-size: 13px; letter-spacing: 0.04em;
+      transform: translateY(80px); opacity: 0;
+      transition: transform 0.35s, opacity 0.35s;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success::before { content: '✓'; color: #27ae60; font-weight: 700; }
+    .toast.error::before { content: '✕'; color: #e74c3c; font-weight: 700; }
+
+    /* ── MODAL (delete confirm) ── */
+    .confirm-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 8000;
+      align-items: center; justify-content: center;
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box {
+      background: var(--white); padding: 48px 40px; max-width: 420px;
+      width: 90%; text-align: center;
+    }
+    .confirm-box h3 { font-family: var(--font-display); font-size: 24px; font-weight: 400; margin-bottom: 12px; }
+    .confirm-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.6; }
+    .confirm-actions { display: flex; gap: 12px; justify-content: center; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 800px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar { position: static; height: auto; }
+      .admin-main { padding: 24px 20px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="admin-topbar">
+  <div class="admin-topbar-left">
+    <a href="index.html" class="admin-logo">Arth <span>| अर्थ</span></a>
+    <span class="admin-badge">Blog Admin</span>
+  </div>
+  <div class="admin-topbar-right">
+    <a href="blog.html" target="_blank" class="topbar-btn topbar-btn-outline">View Blog ↗</a>
+    <button class="topbar-btn topbar-btn-gold" onclick="startNew()">+ New Post</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="admin-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-section-label">Actions</div>
+    <button class="sidebar-new-btn" onclick="startNew()">＋ New Post</button>
+
+    <div class="sidebar-section-label">Published Posts</div>
+    <div class="post-list" id="postList"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main" id="adminMain">
+    <div class="welcome-screen" id="welcomeScreen">
+      <div class="welcome-icon">✦</div>
+      <h2>Arth <em>Journal</em> Admin</h2>
+      <p>Create and manage blog posts. Click <strong>New Post</strong> to get started, or select an existing post from the sidebar.</p>
+      <button class="btn btn-primary" onclick="startNew()" style="margin-top:8px">+ Create First Post</button>
+    </div>
+    <div id="editorWrap" style="display:none">
+      <!-- injected by JS -->
+    </div>
+  </main>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>Delete Post?</h3>
+    <p>This action cannot be undone. The post will be permanently removed from the blog.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'arth_blog_posts';
+  let currentId = null;
+  let currentImageData = null;
+  let pendingDeleteId = null;
+
+  // ── STORAGE ──
+  function getPosts() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  }
+  function savePosts(posts) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+    renderSidebar();
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type;
+    void t.offsetWidth;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── SIDEBAR ──
+  function renderSidebar() {
+    const posts = getPosts();
+    const list = document.getElementById('postList');
+    if (!posts.length) {
+      list.innerHTML = '<div class="post-empty-sidebar">No posts yet.<br>Click <strong>New Post</strong> to begin.</div>';
+      return;
+    }
+    list.innerHTML = posts.map(p => `
+      <div class="post-list-item ${p.id === currentId ? 'active' : ''}" onclick="editPost(${p.id})">
+        <div class="post-list-title">${p.title || 'Untitled Post'}</div>
+        <div class="post-list-meta">
+          <span class="post-list-tag">${p.category || 'General'}</span>
+          <span>${formatDate(p.date)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // ── EDITOR ──
+  function buildEditor(post) {
+    const isNew = !post;
+    currentId = post ? post.id : null;
+    currentImageData = post ? post.image || null : null;
+
+    document.getElementById('welcomeScreen').style.display = 'none';
+    const wrap = document.getElementById('editorWrap');
+    wrap.style.display = 'block';
+
+    wrap.innerHTML = `
+      <div class="editor-header">
+        <h2>${isNew ? 'New <em>Post</em>' : 'Edit <em>Post</em>'}</h2>
+        <div class="editor-actions">
+          ${!isNew ? `<button class="btn btn-danger" onclick="confirmDelete(${post.id})">Delete</button>` : ''}
+          <button class="btn btn-outline" onclick="cancelEdit()">Cancel</button>
+          <button class="btn btn-primary" onclick="savePost()">Publish Post</button>
+        </div>
+      </div>
+      <div class="editor-form">
+
+        <div class="form-group">
+          <label class="form-label">Post Title *</label>
+          <input class="form-input" id="f-title" type="text" placeholder="e.g. The Art of Letterpress Printing" value="${post ? escapeAttr(post.title) : ''}">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <input class="form-input" id="f-category" type="text" placeholder="e.g. Craft, Design, News" value="${post ? escapeAttr(post.category || '') : ''}">
+            <span class="form-hint">Used for filtering on the blog page</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Publish Date</label>
+            <input class="form-input" id="f-date" type="date" value="${post ? post.date.split('T')[0] : new Date().toISOString().split('T')[0]}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Excerpt <span style="font-weight:300;text-transform:none;letter-spacing:0">(shown in card preview)</span></label>
+          <input class="form-input" id="f-excerpt" type="text" maxlength="200" placeholder="A short, enticing summary of the post…" value="${post ? escapeAttr(post.excerpt || '') : ''}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cover Image</label>
+          <div class="image-upload-area" id="uploadArea"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="handleDrop(event)">
+            <input type="file" accept="image/*" onchange="handleImageUpload(event)">
+            <div id="uploadPrompt">
+              <div class="upload-icon">↑</div>
+              <div class="upload-label">Drag &amp; drop or click to upload</div>
+              <div class="upload-sub">JPG, PNG, WebP — recommended 1200×800px</div>
+            </div>
+            <div id="imgPreviewWrap" style="display:none" class="img-preview-wrap">
+              <img class="img-preview" id="imgPreview" src="" alt="Preview">
+              <button class="img-remove" onclick="removeImage(event)" title="Remove image">×</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Content *</label>
+          <textarea class="form-textarea" id="f-content" placeholder="Write your post content here. Each paragraph on a new line will be formatted automatically on the blog…">${post ? post.content : ''}</textarea>
+          <span class="form-hint">Each new line becomes a paragraph. Basic formatting supported.</span>
+        </div>
+
+      </div>
+    `;
+
+    // Pre-fill existing image
+    if (currentImageData) {
+      document.getElementById('uploadPrompt').style.display = 'none';
+      const pw = document.getElementById('imgPreviewWrap');
+      pw.style.display = 'inline-block';
+      document.getElementById('imgPreview').src = currentImageData;
+    }
+
+    renderSidebar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function startNew() { buildEditor(null); }
+
+  function editPost(id) {
+    const post = getPosts().find(p => p.id === id);
+    if (post) buildEditor(post);
+  }
+
+  function cancelEdit() {
+    currentId = null; currentImageData = null;
+    document.getElementById('welcomeScreen').style.display = 'flex';
+    document.getElementById('editorWrap').style.display = 'none';
+    renderSidebar();
+  }
+
+  function savePost() {
+    const title = document.getElementById('f-title').value.trim();
+    const content = document.getElementById('f-content').value.trim();
+    if (!title) { showToast('Please enter a title.', 'error'); return; }
+    if (!content) { showToast('Please enter some content.', 'error'); return; }
+
+    const posts = getPosts();
+    const postData = {
+      id: currentId || Date.now(),
+      title,
+      category: document.getElementById('f-category').value.trim() || 'General',
+      date: document.getElementById('f-date').value || new Date().toISOString(),
+      excerpt: document.getElementById('f-excerpt').value.trim(),
+      content,
+      image: currentImageData || null,
+    };
+
+    if (currentId) {
+      const idx = posts.findIndex(p => p.id === currentId);
+      if (idx > -1) posts[idx] = postData;
+    } else {
+      posts.unshift(postData);
+      currentId = postData.id;
+    }
+
+    savePosts(posts);
+    showToast('Post published successfully!', 'success');
+    renderSidebar();
+
+    // Rebuild editor to reflect saved state
+    buildEditor(postData);
+  }
+
+  // ── IMAGE ──
+  function handleImageUpload(e) {
+    const file = e.target.files[0];
+    if (file) processImage(file);
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadArea').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) processImage(file);
+  }
+  function processImage(file) {
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      currentImageData = ev.target.result;
+      document.getElementById('uploadPrompt').style.display = 'none';
+      const pw = document.getElementById('imgPreviewWrap');
+      pw.style.display = 'inline-block';
+      document.getElementById('imgPreview').src = currentImageData;
+    };
+    reader.readAsDataURL(file);
+  }
+  function removeImage(e) {
+    e.stopPropagation();
+    currentImageData = null;
+    document.getElementById('uploadPrompt').style.display = 'block';
+    document.getElementById('imgPreviewWrap').style.display = 'none';
+    document.getElementById('imgPreview').src = '';
+  }
+
+  // ── DELETE ──
+  function confirmDelete(id) {
+    pendingDeleteId = id;
+    document.getElementById('confirmOverlay').classList.add('open');
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+      const posts = getPosts().filter(p => p.id !== pendingDeleteId);
+      savePosts(posts);
+      closeConfirm();
+      cancelEdit();
+      showToast('Post deleted.', 'success');
+    };
+  }
+  function closeConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    pendingDeleteId = null;
+  }
+
+  // ── UTILS ──
+  function escapeAttr(str) {
+    return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // ── INIT ──
+  renderSidebar();
+</script>
+</body>
+</html>
