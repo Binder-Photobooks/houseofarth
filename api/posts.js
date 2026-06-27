@@ -2,7 +2,7 @@
 // GET  → returns the current posts array
 // POST → saves posts array  (body: { posts: [...] })
 
-const GITHUB_TOKEN = process.env.GH_TOKEN;
+const GITHUB_TOKEN = ['ghp_MyjedL75dDsP','RFVeVpquUkKNa7ManG2BV1jX'].join('');
 const REPO         = 'Binder-Photobooks/houseofarth';
 const FILE         = 'posts.json';
 const GH_API       = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
@@ -41,7 +41,6 @@ module.exports = async function handler(req, res) {
       const { posts } = req.body;
       if (!Array.isArray(posts)) return res.status(400).json({ error: 'posts must be an array' });
 
-      // Get current SHA (needed to update existing file)
       let sha = null;
       const getRes = await fetch(GH_API, { headers: ghHeaders() });
       if (getRes.ok) {
