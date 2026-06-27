@@ -513,13 +513,17 @@
   let quill = null;
   let pendingInlineImage = null;
 
-  // ── STORAGE ──
-  function getPosts() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
+  // ── STORAGE (shared across all devices via window.storage) ──
+  async function getPosts() {
+    try {
+      const result = await window.storage.get(STORAGE_KEY, true);
+      return result ? JSON.parse(result.value) : [];
+    } catch { return []; }
   }
-  function savePosts(posts) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+  async function savePosts(posts) {
+    try {
+      await window.storage.set(STORAGE_KEY, JSON.stringify(posts), true);
+    } catch(e) { console.error('Storage save error:', e); }
     renderSidebar();
   }
 
@@ -534,8 +538,8 @@
   }
 
   // ── SIDEBAR ──
-  function renderSidebar() {
-    const posts = getPosts();
+  async function renderSidebar() {
+    const posts = await getPosts();
     const list = document.getElementById('postList');
     if (!posts.length) {
       list.innerHTML = '<div class="post-empty-sidebar">No posts yet.<br>Click <strong>New Post</strong> to begin.</div>';
@@ -664,8 +668,9 @@
   }
 
   function startNew() { buildEditor(null); }
-  function editPost(id) {
-    const post = getPosts().find(p => p.id === id);
+  async function editPost(id) {
+    const posts = await getPosts();
+    const post = posts.find(p => p.id === id);
     if (post) buildEditor(post);
   }
   function cancelEdit() {
@@ -675,14 +680,14 @@
     renderSidebar();
   }
 
-  function savePost() {
+  async function savePost() {
     const title = document.getElementById('f-title').value.trim();
     const content = quill ? quill.root.innerHTML.trim() : '';
     const textOnly = quill ? quill.getText().trim() : '';
     if (!title) { showToast('Please enter a title.', 'error'); return; }
     if (!textOnly) { showToast('Please enter some content.', 'error'); return; }
 
-    const posts = getPosts();
+    const posts = await getPosts();
     const postData = {
       id: currentId || Date.now(),
       title,
@@ -701,8 +706,8 @@
       currentId = postData.id;
     }
 
-    savePosts(posts);
-    showToast('Post published successfully!', 'success');
+    await savePosts(posts);
+    showToast('Post published — now visible to all visitors!', 'success');
     buildEditor(postData);
   }
 
@@ -810,8 +815,9 @@
   function confirmDelete(id) {
     pendingDeleteId = id;
     document.getElementById('confirmOverlay').classList.add('open');
-    document.getElementById('confirmDeleteBtn').onclick = function() {
-      savePosts(getPosts().filter(p => p.id !== pendingDeleteId));
+    document.getElementById('confirmDeleteBtn').onclick = async function() {
+      const posts = await getPosts();
+      await savePosts(posts.filter(p => p.id !== pendingDeleteId));
       closeConfirm(); cancelEdit();
       showToast('Post deleted.', 'success');
     };

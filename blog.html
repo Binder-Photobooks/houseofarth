@@ -320,9 +320,11 @@
   // ── STORAGE KEY ──
   const STORAGE_KEY = 'arth_blog_posts';
 
-  function getPosts() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
+  async function getPosts() {
+    try {
+      const result = await window.storage.get(STORAGE_KEY, true);
+      return result ? JSON.parse(result.value) : [];
+    } catch { return []; }
   }
 
   function formatDate(iso) {
@@ -330,8 +332,8 @@
     return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
-  function renderPosts(filter = 'all') {
-    const posts = getPosts().filter(p => filter === 'all' || p.category === filter);
+  async function renderPosts(filter = 'all') {
+    const posts = (await getPosts()).filter(p => filter === 'all' || p.category === filter);
     const grid = document.getElementById('blogGrid');
     grid.innerHTML = '';
 
@@ -365,8 +367,8 @@
     });
   }
 
-  function buildFilters() {
-    const posts = getPosts();
+  async function buildFilters() {
+    const posts = await getPosts();
     const cats = ['all', ...new Set(posts.map(p => p.category).filter(Boolean))];
     const bar = document.getElementById('filterBar');
     bar.innerHTML = cats.map(c =>
@@ -380,8 +382,8 @@
     renderPosts(cat);
   }
 
-  function openPost(id) {
-    const posts = getPosts();
+  async function openPost(id) {
+    const posts = await getPosts();
     const post = posts.find(p => p.id === id);
     if (!post) return;
 
@@ -412,11 +414,16 @@
   }
 
   // ── INIT ──
-  buildFilters();
-  renderPosts();
-
-  // Listen for storage changes (from admin panel)
-  window.addEventListener('storage', () => { buildFilters(); renderPosts(); });
+  async function init() {
+    // Show loading state
+    document.getElementById('blogGrid').innerHTML = `
+      <div class="empty-state">
+        <h3 style="color:var(--mid-grey);font-size:18px">Loading posts…</h3>
+      </div>`;
+    await buildFilters();
+    await renderPosts();
+  }
+  init();
 </script>
 </body>
 </html>
