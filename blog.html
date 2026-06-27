@@ -317,11 +317,9 @@
 </div>
 
 <script>
-  const GH_RAW = 'https://raw.githubusercontent.com/Binder-Photobooks/houseofarth/main/posts.json';
-
   async function getPosts() {
     try {
-      const res = await fetch(GH_RAW + '?t=' + Date.now());
+      const res = await fetch('/api/posts?t=' + Date.now());
       if (!res.ok) return [];
       return await res.json();
     } catch { return []; }
