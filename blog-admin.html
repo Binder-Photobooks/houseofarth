@@ -513,16 +513,16 @@
   let quill = null;
   let pendingInlineImage = null;
 
-  // ── STORAGE (shared across all devices via window.storage) ──
+  // ── STORAGE (localStorage — works in any browser) ──
   async function getPosts() {
     try {
-      const result = await window.storage.get(STORAGE_KEY, true);
-      return result ? JSON.parse(result.value) : [];
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
     } catch { return []; }
   }
   async function savePosts(posts) {
     try {
-      await window.storage.set(STORAGE_KEY, JSON.stringify(posts), true);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
     } catch(e) { console.error('Storage save error:', e); }
     renderSidebar();
   }

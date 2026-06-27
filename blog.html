@@ -322,8 +322,8 @@
 
   async function getPosts() {
     try {
-      const result = await window.storage.get(STORAGE_KEY, true);
-      return result ? JSON.parse(result.value) : [];
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
     } catch { return []; }
   }
 
