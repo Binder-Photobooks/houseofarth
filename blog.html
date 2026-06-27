@@ -317,11 +317,13 @@
 </div>
 
 <script>
+  // ── STORAGE KEY ──
+  const STORAGE_KEY = 'arth_blog_posts';
+
   async function getPosts() {
     try {
-      const res = await fetch('/api/posts?t=' + Date.now());
-      if (!res.ok) return [];
-      return await res.json();
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
     } catch { return []; }
   }
 

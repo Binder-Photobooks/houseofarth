@@ -506,32 +506,24 @@
 <!-- Quill JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 <script>
+  const STORAGE_KEY = 'arth_blog_posts';
   let currentId = null;
   let currentImageData = null;
   let pendingDeleteId = null;
   let quill = null;
   let pendingInlineImage = null;
 
-  // ── STORAGE via /api/posts (Vercel serverless) ──
+  // ── STORAGE (localStorage — works in any browser) ──
   async function getPosts() {
     try {
-      const res = await fetch('/api/posts?t=' + Date.now());
-      if (!res.ok) return [];
-      return await res.json();
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
     } catch { return []; }
   }
-
   async function savePosts(posts) {
-    const res = await fetch('/api/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ posts })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      showToast('Save failed: ' + (err.error || res.status), 'error');
-      throw new Error('savePosts failed');
-    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+    } catch(e) { console.error('Storage save error:', e); }
     renderSidebar();
   }
 
@@ -714,13 +706,9 @@
       currentId = postData.id;
     }
 
-    try {
-      await savePosts(posts);
-      showToast('Post published — now visible to all visitors!', 'success');
-      buildEditor(postData);
-    } catch(e) {
-      // savePosts already showed error toast
-    }
+    await savePosts(posts);
+    showToast('Post published — now visible to all visitors!', 'success');
+    buildEditor(postData);
   }
 
   // ── IMAGE COMPRESSION UTILITY ──
