@@ -506,59 +506,31 @@
 <!-- Quill JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 <script>
-  // ── GITHUB STORAGE ──
-  const GH_TOKEN = ['ghp_MyjedL75dDsPRFVe','VpquUkKNa7ManG2BV1jX'].join('');
-  const GH_REPO  = 'Binder-Photobooks/houseofarth';
-  const GH_FILE  = 'posts.json';
-  const GH_API   = `https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`;
-  const GH_RAW   = `https://raw.githubusercontent.com/${GH_REPO}/main/${GH_FILE}`;
-
   let currentId = null;
   let currentImageData = null;
   let pendingDeleteId = null;
   let quill = null;
   let pendingInlineImage = null;
 
-  // ── STORAGE: read posts from GitHub raw (fast, no auth needed) ──
+  // ── STORAGE via /api/posts (Vercel serverless) ──
   async function getPosts() {
     try {
-      const res = await fetch(GH_RAW + '?t=' + Date.now());
+      const res = await fetch('/api/posts?t=' + Date.now());
       if (!res.ok) return [];
       return await res.json();
     } catch { return []; }
   }
 
-  // ── STORAGE: write posts.json to GitHub repo ──
   async function savePosts(posts) {
-    try {
-      // Get current file SHA (required for updates)
-      let sha = null;
-      const getRes = await fetch(GH_API, {
-        headers: { 'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github.v3+json' }
-      });
-      if (getRes.ok) sha = (await getRes.json()).sha;
-
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(posts, null, 2))));
-      const body = { message: 'Update blog posts', content };
-      if (sha) body.sha = sha;
-
-      const putRes = await fetch(GH_API, {
-        method: 'PUT',
-        headers: {
-          'Authorization': 'token ' + GH_TOKEN,
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-      if (!putRes.ok) {
-        const err = await putRes.json();
-        throw new Error(JSON.stringify(err));
-      }
-    } catch(e) {
-      console.error('savePosts error:', e);
-      showToast('Save failed — check console for details.', 'error');
-      return;
+    const res = await fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ posts })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showToast('Save failed: ' + (err.error || res.status), 'error');
+      throw new Error('savePosts failed');
     }
     renderSidebar();
   }
@@ -742,9 +714,13 @@
       currentId = postData.id;
     }
 
-    await savePosts(posts);
-    showToast('Post published — now visible to all visitors!', 'success');
-    buildEditor(postData);
+    try {
+      await savePosts(posts);
+      showToast('Post published — now visible to all visitors!', 'success');
+      buildEditor(postData);
+    } catch(e) {
+      // savePosts already showed error toast
+    }
   }
 
   // ── IMAGE COMPRESSION UTILITY ──
