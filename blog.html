@@ -317,13 +317,13 @@
 </div>
 
 <script>
-  // ── STORAGE KEY ──
-  const STORAGE_KEY = 'arth_blog_posts';
+  const GH_RAW = 'https://raw.githubusercontent.com/Binder-Photobooks/houseofarth/main/posts.json';
 
   async function getPosts() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      const res = await fetch(GH_RAW + '?t=' + Date.now());
+      if (!res.ok) return [];
+      return await res.json();
     } catch { return []; }
   }
 
