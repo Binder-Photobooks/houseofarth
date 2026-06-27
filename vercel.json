@@ -1,7 +1,3 @@
 {
-  "functions": {
-    "api/posts.js": {
-      "runtime": "nodejs20.x"
-    }
-  }
+  "version": 2
 }
