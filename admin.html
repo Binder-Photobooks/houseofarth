@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMS Admin | Arth अर्थ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --white: #FFFFFF;
+      --off-white: #F8F6F2;
+      --warm-grey: #E8E4DE;
+      --mid-grey: #B8B2A8;
+      --charcoal: #1A1A1A;
+      --dark: #111111;
+      --gold: #C8A96E;
+      --gold-light: #E8D5B0;
+      --text-body: #3A3A3A;
+      --text-muted: #888880;
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+      --sidebar-w: 280px;
+      --topbar-h: 56px;
+      --danger: #c0392b;
+      --success: #27ae60;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: var(--font-body); background: var(--off-white); color: var(--charcoal); font-size: 14px; line-height: 1.6; }
+
+    /* ════ LOGIN ════ */
+    #loginScreen {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .login-box {
+      background: var(--white); width: 400px; max-width: 94vw;
+      padding: 56px 48px 48px; text-align: center;
+    }
+    .login-logo { font-family: var(--font-display); font-size: 28px; font-weight: 500; letter-spacing: 0.04em; color: var(--dark); }
+    .login-logo span { color: var(--gold); }
+    .login-sub { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin: 6px 0 32px; display: block; }
+    .login-rule { width: 40px; height: 1px; background: var(--gold); margin: 0 auto 28px; }
+    .login-title { font-family: var(--font-display); font-size: 22px; font-weight: 300; color: var(--dark); margin-bottom: 28px; }
+    .login-fields { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+    .login-fields label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 5px; }
+    .login-fields input { width: 100%; padding: 13px 16px; border: 1px solid var(--warm-grey); background: var(--off-white); font-family: var(--font-body); font-size: 14px; color: var(--charcoal); outline: none; transition: border-color 0.2s; border-radius: 0; }
+    .login-fields input:focus { border-color: var(--gold); background: var(--white); }
+    .login-btn { width: 100%; margin-top: 22px; background: var(--charcoal); color: var(--white); border: none; padding: 14px; font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+    .login-btn:hover { background: var(--gold); }
+    .login-error { font-size: 12px; color: var(--danger); margin-top: 12px; min-height: 18px; }
+
+    /* ════ TOP BAR ════ */
+    #topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: var(--topbar-h);
+      background: var(--dark); color: var(--white);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+    }
+    .tb-left { display: flex; align-items: center; gap: 16px; }
+    .tb-logo { font-family: var(--font-display); font-size: 20px; font-weight: 500; letter-spacing: 0.04em; color: var(--white); text-decoration: none; }
+    .tb-logo span { color: var(--gold); }
+    .tb-badge { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); background: rgba(200,169,110,0.15); padding: 4px 10px; border: 1px solid rgba(200,169,110,0.3); }
+    .tb-right { display: flex; align-items: center; gap: 10px; }
+    .tb-btn { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; padding: 7px 16px; border: none; cursor: pointer; font-family: var(--font-body); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+    .tb-btn-ghost { background: transparent; color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.15); }
+    .tb-btn-ghost:hover { color: var(--white); border-color: rgba(255,255,255,0.4); }
+    .tb-btn-gold { background: var(--gold); color: var(--white); }
+    .tb-btn-gold:hover { background: #b8963e; }
+
+    /* ════ SHELL ════ */
+    #shell { display: flex; height: 100vh; padding-top: var(--topbar-h); }
+
+    /* ════ SIDEBAR ════ */
+    #sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--white); border-right: 1px solid var(--warm-grey);
+      display: flex; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden;
+    }
+    .sidebar-logo-strip {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--warm-grey);
+    }
+    .sidebar-logo-strip p { font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em; margin-top: 4px; }
+    .nav-section { padding: 20px 0 8px; }
+    .nav-section-label { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--mid-grey); font-weight: 600; padding: 0 20px; margin-bottom: 6px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: var(--text-body);
+      border-left: 3px solid transparent;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-item:hover { background: var(--off-white); color: var(--dark); }
+    .nav-item.active { background: #FBF9F5; color: var(--dark); border-left-color: var(--gold); font-weight: 600; }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.6; }
+    .nav-item.active svg { opacity: 1; }
+    .nav-divider { height: 1px; background: var(--warm-grey); margin: 8px 0; }
+
+    /* sidebar blog sub-list */
+    .blog-sublist { overflow: hidden; }
+    .blog-sub-item { padding: 9px 20px 9px 48px; font-size: 12px; color: var(--text-muted); cursor: pointer; border-left: 3px solid transparent; transition: 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .blog-sub-item:hover { background: var(--off-white); color: var(--dark); }
+    .blog-sub-item.active { color: var(--gold); font-weight: 600; }
+    .sidebar-new-btn { margin: 4px 16px 0; padding: 10px 14px; background: var(--charcoal); color: var(--white); border: none; cursor: pointer; font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; transition: background 0.2s; width: calc(100% - 32px); }
+    .sidebar-new-btn:hover { background: var(--gold); }
+
+    /* ════ MAIN ════ */
+    #main { flex: 1; overflow-y: auto; overflow-x: hidden; }
+    .panel { display: none; padding: 40px 48px; max-width: 1100px; }
+    .panel.active { display: block; }
+
+    /* ════ PANEL HEADERS ════ */
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--warm-grey); }
+    .panel-header h1 { font-family: var(--font-display); font-size: 32px; font-weight: 300; color: var(--dark); }
+    .panel-header h1 em { font-style: italic; color: var(--gold); }
+    .panel-actions { display: flex; gap: 10px; }
+
+    /* ════ BUTTONS ════ */
+    .btn { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; padding: 10px 22px; border: none; cursor: pointer; font-family: var(--font-body); transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--charcoal); color: var(--white); }
+    .btn-primary:hover { background: var(--gold); }
+    .btn-outline { background: transparent; color: var(--charcoal); border: 1px solid var(--warm-grey); }
+    .btn-outline:hover { border-color: var(--charcoal); }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: var(--white); }
+    .btn-sm { padding: 7px 14px; font-size: 10px; }
+    .btn-gold { background: var(--gold); color: var(--white); }
+    .btn-gold:hover { background: #b8963e; }
+
+    /* ════ FORM ════ */
+    .form-section { display: flex; flex-direction: column; gap: 24px; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .form-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+    .form-input, .form-select, .form-textarea { padding: 12px 15px; border: 1px solid var(--warm-grey); background: var(--white); font-family: var(--font-body); font-size: 14px; color: var(--charcoal); outline: none; transition: border-color 0.2s; border-radius: 0; -webkit-appearance: none; width: 100%; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
+    .form-textarea { resize: vertical; line-height: 1.7; }
+    .form-hint { font-size: 11px; color: var(--mid-grey); }
+
+    /* ════ SAVE BAR ════ */
+    .save-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: var(--off-white); border: 1px solid var(--warm-grey); margin-bottom: 28px; }
+    .save-bar-msg { font-size: 12px; color: var(--text-muted); }
+    .save-bar-actions { display: flex; gap: 10px; }
+
+    /* ════ SECTIONS (site editor) ════ */
+    .editor-section { background: var(--white); border: 1px solid var(--warm-grey); margin-bottom: 20px; }
+    .editor-section-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--warm-grey); cursor: pointer; user-select: none; }
+    .editor-section-header h3 { font-family: var(--font-display); font-size: 18px; font-weight: 400; color: var(--dark); display: flex; align-items: center; gap: 10px; }
+    .section-tag { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); border: 1px solid var(--gold-light); padding: 3px 8px; font-family: var(--font-body); }
+    .editor-section-body { padding: 24px; display: none; }
+    .editor-section-body.open { display: block; }
+    .section-toggle { font-size: 18px; color: var(--mid-grey); transition: transform 0.2s; }
+    .section-toggle.open { transform: rotate(180deg); }
+
+    /* ════ IMAGE UPLOAD ════ */
+    .img-upload-box { border: 1.5px dashed var(--warm-grey); background: var(--off-white); padding: 28px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; }
+    .img-upload-box:hover, .img-upload-box.drag-over { border-color: var(--gold); background: rgba(200,169,110,0.04); }
+    .img-upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .img-upload-icon { width: 44px; height: 44px; border: 1.5px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--gold); font-size: 18px; }
+    .img-upload-label { font-size: 13px; color: var(--text-body); margin-bottom: 4px; }
+    .img-upload-sub { font-size: 11px; color: var(--mid-grey); }
+    .img-preview-wrap { position: relative; display: inline-block; }
+    .img-preview { max-height: 180px; max-width: 100%; display: block; border: 1px solid var(--warm-grey); margin: 0 auto; }
+    .img-remove { position: absolute; top: -8px; right: -8px; background: var(--charcoal); color: var(--white); border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+    .img-remove:hover { background: var(--danger); }
+
+    /* ════ QUILL ════ */
+    .ql-toolbar.ql-snow { border: 1px solid var(--warm-grey) !important; border-bottom: none !important; background: var(--off-white); padding: 8px 10px !important; font-family: var(--font-body) !important; }
+    .ql-container.ql-snow { border: 1px solid var(--warm-grey) !important; font-family: var(--font-body) !important; font-size: 14px; }
+    .ql-editor { min-height: 220px; line-height: 1.75; color: var(--charcoal); padding: 14px 16px !important; }
+    .ql-snow .ql-active .ql-stroke, .ql-snow button:hover .ql-stroke { stroke: var(--gold) !important; }
+    .ql-snow .ql-active .ql-fill, .ql-snow button:hover .ql-fill { fill: var(--gold) !important; }
+    .ql-snow .ql-active, .ql-snow button:hover { color: var(--gold) !important; }
+    .editor-quill-wrap:focus-within .ql-toolbar.ql-snow, .editor-quill-wrap:focus-within .ql-container.ql-snow { border-color: var(--gold) !important; }
+    .ql-editor img { max-width: 100%; border: 1px solid var(--warm-grey); display: block; margin: 10px 0; }
+    /* Google Fonts picker in Quill */
+    .ql-font span[data-label]::before { font-family: inherit; }
+    .ql-font-cormorant { font-family: 'Cormorant Garamond', serif; }
+    .ql-font-inter { font-family: 'Inter', sans-serif; }
+    .ql-font-playfair { font-family: 'Playfair Display', serif; }
+    .ql-font-lato { font-family: 'Lato', sans-serif; }
+    .ql-font-montserrat { font-family: 'Montserrat', sans-serif; }
+    .ql-font-raleway { font-family: 'Raleway', sans-serif; }
+    .ql-font-opensans { font-family: 'Open Sans', sans-serif; }
+    .ql-font-nunito { font-family: 'Nunito', sans-serif; }
+
+    /* ════ MACHINES LIST EDITOR ════ */
+    .machine-list-edit { display: flex; flex-direction: column; gap: 12px; }
+    .machine-edit-item { background: var(--off-white); border: 1px solid var(--warm-grey); padding: 16px 20px; display: grid; grid-template-columns: 60px 1fr 1fr auto; gap: 12px; align-items: start; }
+    .machine-edit-item .form-input { background: var(--white); }
+
+    /* ════ CONTACTS / PAPER WORKS CARDS ════ */
+    .card-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .edit-card { background: var(--off-white); border: 1px solid var(--warm-grey); padding: 20px; }
+    .edit-card h4 { font-family: var(--font-display); font-size: 16px; font-weight: 400; margin-bottom: 14px; color: var(--dark); }
+
+    /* ════ CLIENT LOGOS ════ */
+    .client-logo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .client-logo-slot { background: var(--off-white); border: 1px solid var(--warm-grey); aspect-ratio: 3/2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s; }
+    .client-logo-slot:hover { border-color: var(--gold); }
+    .client-logo-slot img { max-width: 80%; max-height: 60%; object-fit: contain; position: absolute; }
+    .client-logo-slot input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+    .client-logo-num { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid-grey); }
+    .client-logo-rm { position: absolute; top: 4px; right: 4px; background: var(--danger); color: var(--white); border: none; width: 18px; height: 18px; border-radius: 50%; cursor: pointer; font-size: 10px; display: none; align-items: center; justify-content: center; z-index: 2; }
+    .client-logo-slot:hover .client-logo-rm { display: flex; }
+
+    /* ════ TESTIMONIALS ════ */
+    .testimonial-edit-list { display: flex; flex-direction: column; gap: 16px; }
+    .testimonial-edit-item { background: var(--off-white); border: 1px solid var(--warm-grey); padding: 20px; border-left: 3px solid var(--gold); }
+
+    /* ════ BLOG PANEL ════ */
+    #blogPanel { max-width: 900px; }
+    .blog-welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; text-align: center; gap: 16px; }
+    .blog-welcome-icon { width: 64px; height: 64px; border: 1.5px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 24px; }
+    .blog-welcome h2 { font-family: var(--font-display); font-size: 28px; font-weight: 300; color: var(--dark); }
+    .blog-welcome p { font-size: 13px; color: var(--text-muted); max-width: 360px; line-height: 1.7; }
+
+    /* ════ GALLERY PANEL ════ */
+    .gallery-grid-admin { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .gallery-slot {
+      position: relative; cursor: pointer;
+      background: var(--off-white); border: 1.5px dashed var(--warm-grey);
+      aspect-ratio: 4/3; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      transition: border-color 0.2s;
+    }
+    .gallery-slot:hover { border-color: var(--gold); }
+    .gallery-slot.has-image { border-style: solid; border-color: var(--warm-grey); }
+    .gallery-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+    .gallery-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+    .gallery-slot img.loaded { display: block; }
+    .gallery-slot-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; gap: 8px; flex-direction: column; }
+    .gallery-slot.has-image:hover .gallery-slot-overlay { display: flex; }
+    .gallery-slot-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid-grey); }
+    .gallery-slot-num { font-family: var(--font-display); font-size: 18px; color: var(--mid-grey); }
+    .gallery-add-row { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+    .gallery-slot .slot-caption-wrap { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(17,17,17,0.75); padding: 8px 10px; display: none; }
+    .gallery-slot.has-image .slot-caption-wrap { display: block; }
+    .gallery-slot .slot-caption { font-size: 10px; color: rgba(255,255,255,0.8); letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gallery-slot-rm { background: var(--danger); color: var(--white); border: none; padding: 6px 14px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-family: var(--font-body); font-weight: 600; }
+    .gallery-slot-edit { background: var(--gold); color: var(--white); border: none; padding: 6px 14px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-family: var(--font-body); font-weight: 600; }
+
+    /* ════ TOAST ════ */
+    #toast { position: fixed; bottom: 28px; right: 28px; z-index: 9999; background: var(--charcoal); color: var(--white); padding: 13px 22px; font-size: 13px; letter-spacing: 0.03em; transform: translateY(80px); opacity: 0; transition: 0.35s; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success::before { content: '✓'; color: var(--success); font-weight: 700; }
+    #toast.error::before { content: '✕'; color: #e74c3c; font-weight: 700; }
+
+    /* ════ MODAL ════ */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 8000; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--white); padding: 44px 40px; max-width: 480px; width: 92vw; }
+    .modal-box h3 { font-family: var(--font-display); font-size: 24px; font-weight: 400; margin-bottom: 10px; }
+    .modal-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+    /* caption modal */
+    .caption-modal { background: var(--white); padding: 36px 32px; max-width: 400px; width: 92vw; }
+    .caption-modal h3 { font-family: var(--font-display); font-size: 20px; margin-bottom: 16px; }
+
+    /* img insert modal */
+    .img-modal-box { background: var(--white); padding: 36px 32px; width: 480px; max-width: 95vw; }
+    .img-modal-box h3 { font-family: var(--font-display); font-size: 22px; font-weight: 400; color: var(--dark); margin-bottom: 20px; }
+    .img-modal-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid var(--warm-grey); }
+    .img-tab { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 18px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 600; }
+    .img-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .img-tab-panel { display: none; }
+    .img-tab-panel.active { display: block; }
+    .modal-drop-zone { border: 1.5px dashed var(--warm-grey); padding: 28px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; background: var(--off-white); }
+    .modal-drop-zone:hover, .modal-drop-zone.drag-over { border-color: var(--gold); }
+    .modal-drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .modal-drop-zone p { font-size: 13px; color: var(--text-muted); }
+    .modal-drop-zone small { font-size: 11px; color: var(--mid-grey); }
+    .img-preview-thumb { max-height: 130px; max-width: 100%; display: block; margin: 10px auto 0; border: 1px solid var(--warm-grey); }
+    .img-modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+    /* ════ HP INDIGO BENEFITS ════ */
+    .benefits-edit-list { display: flex; flex-direction: column; gap: 12px; }
+    .benefit-edit-item { background: var(--off-white); border: 1px solid var(--warm-grey); border-left: 3px solid var(--gold); padding: 16px 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 12px; align-items: start; }
+
+    /* ════ ORDER STEPS ════ */
+    .steps-edit-list { display: flex; flex-direction: column; gap: 12px; }
+    .step-edit-item { background: var(--off-white); border: 1px solid var(--warm-grey); padding: 16px 20px; display: grid; grid-template-columns: 40px 1fr 2fr; gap: 12px; align-items: start; }
+
+    /* ════ ABOUT STATS ════ */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .stat-edit { background: var(--off-white); border: 1px solid var(--warm-grey); border-top: 2px solid var(--gold); padding: 16px; }
+    .stat-edit label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px; }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      #sidebar { display: none; }
+      .panel { padding: 24px 20px; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .gallery-grid-admin { grid-template-columns: repeat(2, 1fr); }
+      .client-logo-grid { grid-template-columns: repeat(3, 1fr); }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+  <!-- Google Fonts for rich text -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;600&family=Raleway:wght@300;400;600&family=Open+Sans:wght@300;400;600&family=Nunito:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ════ LOGIN ════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Arth <span>| अर्थ</span></div>
+    <span class="login-sub">CMS Admin Panel</span>
+    <div class="login-rule"></div>
+    <div class="login-title">Sign in to continue</div>
+    <div class="login-fields">
+      <div>
+        <label>Username</label>
+        <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ════ TOP BAR ════ -->
+<div id="topbar">
+  <div class="tb-left">
+    <a href="index.html" class="tb-logo">Arth <span>| अर्थ</span></a>
+    <span class="tb-badge">CMS Admin</span>
+  </div>
+  <div class="tb-right">
+    <a href="index.html" target="_blank" class="tb-btn tb-btn-ghost">View Site ↗</a>
+    <a href="blog.html" target="_blank" class="tb-btn tb-btn-ghost">View Blog ↗</a>
+    <button class="tb-btn tb-btn-gold" onclick="saveAll()">Save All Changes</button>
+    <button class="tb-btn tb-btn-ghost" onclick="doLogout()" title="Logout">⎋ Logout</button>
+  </div>
+</div>
+
+<!-- ════ SHELL ════ -->
+<div id="shell">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="nav-section">
+      <div class="nav-section-label">Site Sections</div>
+      <div class="nav-item active" onclick="showPanel('heroPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/></svg>
+        Hero / Home
+      </div>
+      <div class="nav-item" onclick="showPanel('aboutPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        About Us
+      </div>
+      <div class="nav-item" onclick="showPanel('capabilitiesPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        All Under One Roof
+      </div>
+      <div class="nav-item" onclick="showPanel('paperPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        Paper Works
+      </div>
+      <div class="nav-item" onclick="showPanel('machinesPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
+        Machines
+      </div>
+      <div class="nav-item" onclick="showPanel('indigoPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        HP Indigo
+      </div>
+      <div class="nav-item" onclick="showPanel('clientsPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Clients
+      </div>
+      <div class="nav-item" onclick="showPanel('galleryPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Gallery
+      </div>
+      <div class="nav-item" onclick="showPanel('orderPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Order Section
+      </div>
+      <div class="nav-item" onclick="showPanel('contactPanel', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.81 19.79 19.79 0 01.1 2.18 2 2 0 012.07 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.28-1.28a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+        Contact
+      </div>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Blog</div>
+      <button class="sidebar-new-btn" onclick="newBlogPost()">＋ New Post</button>
+      <div id="blogSubList" style="margin-top:8px"></div>
+      <div class="nav-item" onclick="showPanel('blogPanel', this); showBlogWelcome()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Manage Posts
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- ── HERO PANEL ── -->
+    <div class="panel active" id="heroPanel">
+      <div class="panel-header">
+        <h1>Hero <em>/ Home</em></h1>
+        <div class="panel-actions">
+          <button class="btn btn-primary" onclick="saveSection('hero')">Save Changes</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-group">
+          <label class="form-label">Eyebrow Text</label>
+          <input class="form-input" id="hero-eyebrow" placeholder="e.g. New Delhi, since 2006">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Main Headline (first line)</label>
+          <input class="form-input" id="hero-title1" placeholder="e.g. Where Paper Meets">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Main Headline (italic gold line)</label>
+          <input class="form-input" id="hero-title2" placeholder="e.g. Precision">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subtitle / Tagline</label>
+          <input class="form-input" id="hero-subtitle" placeholder="e.g. Premium stationery & print solutions…">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Primary CTA Button Text</label>
+            <input class="form-input" id="hero-cta1" placeholder="e.g. View Our Work">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Secondary CTA Button Text</label>
+            <input class="form-input" id="hero-cta2" placeholder="e.g. Get In Touch">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hero Background Image</label>
+          <div class="img-upload-box" id="hero-img-box" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleSectionImgDrop(event,'hero-img')">
+            <input type="file" accept="image/*" onchange="handleSectionImg(event,'hero-img','hero-img-box')">
+            <div id="hero-img-prompt">
+              <div class="img-upload-icon">↑</div>
+              <div class="img-upload-label">Drag & drop or click to upload</div>
+              <div class="img-upload-sub">Recommended: 1920 × 1080px</div>
+            </div>
+            <div id="hero-img-preview" style="display:none" class="img-preview-wrap">
+              <img class="img-preview" id="hero-img-src" src="" alt="">
+              <button class="img-remove" onclick="removeSectionImg('hero-img','hero-img-box',event)">×</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ABOUT PANEL ── -->
+    <div class="panel" id="aboutPanel">
+      <div class="panel-header">
+        <h1>About <em>Us</em></h1>
+        <button class="btn btn-primary" onclick="saveSection('about')">Save Changes</button>
+      </div>
+      <div class="form-section">
+        <div class="form-group">
+          <label class="form-label">Section Label</label>
+          <input class="form-input" id="about-label" placeholder="e.g. About Us">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Headline (first part)</label>
+          <input class="form-input" id="about-title1" placeholder="e.g. Crafting Stories">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Headline — "on" connector</label>
+            <input class="form-input" id="about-title2" placeholder="on">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Headline — gold italic word</label>
+            <input class="form-input" id="about-title3" placeholder="e.g. Paper">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Body Text (paragraph 1)</label>
+          <textarea class="form-textarea" id="about-body1" rows="4" placeholder="e.g. For over two decades…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Body Text (paragraph 2)</label>
+          <textarea class="form-textarea" id="about-body2" rows="4" placeholder="e.g. We believe every printed piece…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">About Image</label>
+          <div class="img-upload-box" id="about-img-box" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleSectionImgDrop(event,'about-img')">
+            <input type="file" accept="image/*" onchange="handleSectionImg(event,'about-img','about-img-box')">
+            <div id="about-img-prompt"><div class="img-upload-icon">↑</div><div class="img-upload-label">Click to upload</div><div class="img-upload-sub">Recommended: 800 × 1000px</div></div>
+            <div id="about-img-preview" style="display:none" class="img-preview-wrap">
+              <img class="img-preview" id="about-img-src" src="" alt="">
+              <button class="img-remove" onclick="removeSectionImg('about-img','about-img-box',event)">×</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Key Statistics</label>
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-edit"><label>Number / Value</label><input class="form-input" id="stat1-num" placeholder="25+"><label style="margin-top:8px">Label</label><input class="form-input" id="stat1-lbl" placeholder="Years in Business"></div>
+            <div class="stat-edit"><label>Number / Value</label><input class="form-input" id="stat2-num" placeholder="500+"><label style="margin-top:8px">Label</label><input class="form-input" id="stat2-lbl" placeholder="Happy Clients"></div>
+            <div class="stat-edit"><label>Number / Value</label><input class="form-input" id="stat3-num" placeholder="13"><label style="margin-top:8px">Label</label><input class="form-input" id="stat3-lbl" placeholder="Production Machines"></div>
+            <div class="stat-edit"><label>Number / Value</label><input class="form-input" id="stat4-num" placeholder="HP"><label style="margin-top:8px">Label</label><input class="form-input" id="stat4-lbl" placeholder="Indigo Certified"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CAPABILITIES PANEL ── -->
+    <div class="panel" id="capabilitiesPanel">
+      <div class="panel-header">
+        <h1>All Under <em>One Roof</em></h1>
+        <button class="btn btn-primary" onclick="saveSection('capabilities')">Save Changes</button>
+      </div>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Section Headline</label>
+            <input class="form-input" id="cap-title" placeholder="e.g. Everything You Need,">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Headline — gold italic line</label>
+            <input class="form-input" id="cap-title2" placeholder="e.g. One Address">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lead Paragraph</label>
+          <textarea class="form-textarea" id="cap-lead" rows="3" placeholder="From ideation to dispatch…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Capability Cards (6)</label>
+          <div id="capCards" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAPER WORKS PANEL ── -->
+    <div class="panel" id="paperPanel">
+      <div class="panel-header">
+        <h1>Paper <em>Works</em></h1>
+        <button class="btn btn-primary" onclick="saveSection('paper')">Save Changes</button>
+      </div>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Headline</label>
+            <input class="form-input" id="paper-title" placeholder="e.g. A Full Range of">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Headline — gold italic</label>
+            <input class="form-input" id="paper-title2" placeholder="e.g. Print Collateral">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lead Text</label>
+          <input class="form-input" id="paper-lead" placeholder="e.g. Whatever your stationery needs…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Product Cards</label>
+          <div id="paperCards" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MACHINES PANEL ── -->
+    <div class="panel" id="machinesPanel">
+      <div class="panel-header">
+        <h1><em>Machines</em></h1>
+        <div class="panel-actions">
+          <button class="btn btn-outline btn-sm" onclick="addMachine()">+ Add Machine</button>
+          <button class="btn btn-primary" onclick="saveSection('machines')">Save Changes</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Section Headline</label>
+            <input class="form-input" id="mach-title" placeholder="e.g. Industry-Grade">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Headline — gold italic</label>
+            <input class="form-input" id="mach-title2" placeholder="e.g. Equipment">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lead Text</label>
+          <textarea class="form-textarea" id="mach-lead" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Machine List</label>
+          <div class="machine-list-edit" id="machineList"></div>
+        </div>
+        <div class="form-group" style="margin-top:8px">
+          <label class="form-label">Machine Image</label>
+          <div class="img-upload-box" id="mach-img-box" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleSectionImgDrop(event,'mach-img')">
+            <input type="file" accept="image/*" onchange="handleSectionImg(event,'mach-img','mach-img-box')">
+            <div id="mach-img-prompt"><div class="img-upload-icon">↑</div><div class="img-upload-label">Click to upload</div><div class="img-upload-sub">Recommended: 800 × 900px</div></div>
+            <div id="mach-img-preview" style="display:none" class="img-preview-wrap">
+              <img class="img-preview" id="mach-img-src" src="" alt="">
+              <button class="img-remove" onclick="removeSectionImg('mach-img','mach-img-box',event)">×</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HP INDIGO PANEL ── -->
+    <div class="panel" id="indigoPanel">
+      <div class="panel-header">
+        <h1>HP <em>Indigo</em></h1>
+        <button class="btn btn-primary" onclick="saveSection('indigo')">Save Changes</button>
+      </div>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Headline</label>
+            <input class="form-input" id="indigo-title" placeholder="e.g. The Gold Standard in">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Headline — gold italic</label>
+            <input class="form-input" id="indigo-title2" placeholder="e.g. Digital Print">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="indigo-desc" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">HP Indigo Image</label>
+          <div class="img-upload-box" id="indigo-img-box" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleSectionImgDrop(event,'indigo-img')">
+            <input type="file" accept="image/*" onchange="handleSectionImg(event,'indigo-img','indigo-img-box')">
+            <div id="indigo-img-prompt"><div class="img-upload-icon">↑</div><div class="img-upload-label">Click to upload</div><div class="img-upload-sub">Recommended: 900 × 800px</div></div>
+            <div id="indigo-img-preview" style="display:none" class="img-preview-wrap">
+              <img class="img-preview" id="indigo-img-src" src="" alt="">
+              <button class="img-remove" onclick="removeSectionImg('indigo-img','indigo-img-box',event)">×</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Benefits (6 cards)</label>
+          <div class="benefits-edit-list" id="benefitsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CLIENTS PANEL ── -->
+    <div class="panel" id="clientsPanel">
+      <div class="panel-header">
+        <h1><em>Clients</em></h1>
+        <button class="btn btn-primary" onclick="saveSection('clients')">Save Changes</button>
+      </div>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Headline</label>
+            <input class="form-input" id="clients-title" placeholder="e.g. Brands That Trust">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Headline — gold italic</label>
+            <input class="form-input" id="clients-title2" placeholder="e.g. House of Arth">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lead Text</label>
+          <input class="form-input" id="clients-lead" placeholder="e.g. From startups to enterprise…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Client Logos (10 slots)</label>
+          <div class="client-logo-grid" id="clientLogos"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Testimonials (3)</label>
+          <div class="testimonial-edit-list" id="testimonialsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GALLERY PANEL ── -->
+    <div class="panel" id="galleryPanel">
+      <div class="panel-header">
+        <h1>Gallery <em>Page</em></h1>
+        <div class="panel-actions">
+          <button class="btn btn-outline btn-sm" onclick="addGallerySlot()">+ Add Slot</button>
+          <button class="btn btn-primary" onclick="saveSection('gallery')">Save Changes</button>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.7;">Upload photos in <strong>4 × 3 landscape format</strong>. Each slot maintains aspect ratio automatically. Click a slot to upload, hover to remove or add a caption.</p>
+      <div class="form-row" style="margin-bottom:28px">
+        <div class="form-group">
+          <label class="form-label">Gallery Page Title</label>
+          <input class="form-input" id="gallery-title" placeholder="e.g. Our Portfolio">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gallery Subtitle</label>
+          <input class="form-input" id="gallery-subtitle" placeholder="e.g. A curated selection of our finest print work">
+        </div>
+      </div>
+      <div class="gallery-grid-admin" id="galleryAdminGrid"></div>
+      <div class="gallery-add-row">
+        <button class="btn btn-outline" onclick="addGallerySlot()">+ Add More Slots</button>
+        <span style="font-size:12px;color:var(--text-muted)" id="galleryCount"></span>
+      </div>
+    </div>
+
+    <!-- ── ORDER PANEL ── -->
+    <div class="panel" id="orderPanel">
+      <div class="panel-header">
+        <h1>Order <em>Section</em></h1>
+        <button class="btn btn-primary" onclick="saveSection('order')">Save Changes</button>
+      </div>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Headline</label>
+            <input class="form-input" id="order-title" placeholder="e.g. Ready to">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Headline — gold italic</label>
+            <input class="form-input" id="order-title2" placeholder="e.g. Print?">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lead Text</label>
+          <input class="form-input" id="order-lead" placeholder="e.g. Fill in your requirements…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Urgency Message</label>
+          <input class="form-input" id="order-urgent" placeholder="e.g. Need something urgent? Call us directly…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">How It Works — Steps</label>
+          <div class="steps-edit-list" id="stepsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONTACT PANEL ── -->
+    <div class="panel" id="contactPanel">
+      <div class="panel-header">
+        <h1>Contact <em>Us</em></h1>
+        <button class="btn btn-primary" onclick="saveSection('contact')">Save Changes</button>
+      </div>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Headline</label>
+            <input class="form-input" id="contact-title" placeholder="e.g. Visit Us or">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Headline — gold italic</label>
+            <input class="form-input" id="contact-title2" placeholder="e.g. Get in Touch">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Address Line 1</label>
+            <input class="form-input" id="contact-addr1" placeholder="e.g. A-31, Industrial Area Phase I">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address Line 2</label>
+            <input class="form-input" id="contact-addr2" placeholder="e.g. Block A, Naraina Industrial Area Phase 1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone Number 1</label>
+            <input class="form-input" id="contact-phone1" placeholder="+91 98102 60486">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number 2</label>
+            <input class="form-input" id="contact-phone2" placeholder="+91 011 4504088847">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Email (general)</label>
+            <input class="form-input" id="contact-email1" placeholder="info@houseofarth.in">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email (orders)</label>
+            <input class="form-input" id="contact-email2" placeholder="order@houseofarth.in">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Working Hours</label>
+            <input class="form-input" id="contact-hours" placeholder="Monday – Saturday: 9:30 AM – 7:00 PM">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Closed Days</label>
+            <input class="form-input" id="contact-closed" placeholder="Sunday: Closed">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Google Maps Embed URL</label>
+          <input class="form-input" id="contact-mapurl" placeholder="https://maps.google.com/maps?q=…">
+          <span class="form-hint">Paste the src URL from a Google Maps embed code</span>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label">Instagram URL</label>
+            <input class="form-input" id="contact-ig" placeholder="https://instagram.com/…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">LinkedIn URL</label>
+            <input class="form-input" id="contact-li" placeholder="https://linkedin.com/…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Facebook URL</label>
+            <input class="form-input" id="contact-fb" placeholder="https://facebook.com/…">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BLOG PANEL ── -->
+    <div class="panel" id="blogPanel" style="max-width:900px">
+      <div id="blogWelcome" class="blog-welcome">
+        <div class="blog-welcome-icon">✦</div>
+        <h2>Arth <em style="font-style:italic;color:var(--gold)">Journal</em></h2>
+        <p>Create and manage blog posts. Click <strong>New Post</strong> in the sidebar to get started, or select an existing post.</p>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="newBlogPost()">+ Create First Post</button>
+      </div>
+      <div id="blogEditorWrap" style="display:none"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════ DELETE CONFIRM MODAL ════ -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box" style="text-align:center">
+    <h3 id="confirmTitle">Confirm Delete</h3>
+    <p id="confirmMsg">This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ CAPTION MODAL ════ -->
+<div class="modal-overlay" id="captionModal">
+  <div class="caption-modal">
+    <h3>Edit Caption</h3>
+    <div class="form-group">
+      <label class="form-label">Caption Text</label>
+      <input class="form-input" id="captionInput" placeholder="e.g. Business Cards — Duplex Cotton">
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal('captionModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCaption()">Save Caption</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ IMAGE INSERT MODAL (blog) ════ -->
+<div class="modal-overlay" id="imgInsertModal">
+  <div class="img-modal-box">
+    <h3>Insert Image</h3>
+    <div class="img-modal-tabs">
+      <div class="img-tab active" onclick="switchImgTab('upload',this)">Upload File</div>
+      <div class="img-tab" onclick="switchImgTab('url',this)">From URL</div>
+    </div>
+    <div class="img-tab-panel active" id="tab-upload">
+      <div class="modal-drop-zone" id="modalDropZone" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleModalDrop(event)">
+        <input type="file" accept="image/*" onchange="handleModalFileSelect(event)">
+        <p>Drag &amp; drop an image or <strong>click to browse</strong></p>
+        <small>JPG, PNG, WebP — max quality preserved</small>
+        <img class="img-preview-thumb" id="modalThumb" src="" alt="" style="display:none">
+      </div>
+    </div>
+    <div class="img-tab-panel" id="tab-url">
+      <label class="form-label">Image URL</label>
+      <input class="form-input" id="imgUrlInput" type="url" placeholder="https://example.com/image.jpg" style="margin-top:8px" oninput="previewUrlImg()">
+      <img class="img-preview-thumb" id="modalUrlThumb" src="" alt="" style="display:none;margin-top:12px">
+    </div>
+    <div class="img-modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('imgInsertModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmInsertImage()">Insert Image</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TOAST ════ -->
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════ */
+const AUTH_KEY = 'arth_cms_auth';
+const VALID_USER = 'arth';
+const VALID_PASS = 'mehul2026';
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === VALID_USER && p === VALID_PASS) {
+    sessionStorage.setItem(AUTH_KEY, '1');
+    document.getElementById('loginScreen').style.display = 'none';
+    initCMS();
+  } else {
+    const err = document.getElementById('loginError');
+    err.textContent = 'Incorrect username or password.';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem(AUTH_KEY);
+  location.reload();
+}
+if (sessionStorage.getItem(AUTH_KEY) === '1') {
+  document.getElementById('loginScreen').style.display = 'none';
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ═══════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════ */
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+
+/* ═══════════════════════════════════════════
+   PANEL NAV
+═══════════════════════════════════════════ */
+function showPanel(id, navEl) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('main').scrollTo({ top: 0 });
+}
+
+/* ═══════════════════════════════════════════
+   STORAGE
+═══════════════════════════════════════════ */
+const STORE_KEY = 'arth_cms_data';
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+}
+function saveData(data) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e) { console.error(e); }
+}
+function getSection(key) { return loadData()[key] || {}; }
+function setSection(key, val) {
+  const d = loadData(); d[key] = val; saveData(d);
+}
+
+/* ═══════════════════════════════════════════
+   IMAGE COMPRESSION
+═══════════════════════════════════════════ */
+function compressImage(file, callback, maxW=1600) {
+  const r = new FileReader();
+  r.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      if (h > maxW) { w = Math.round(w * maxW / h); h = maxW; }
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(c.toDataURL('image/webp', 0.85));
+    };
+    img.src = ev.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION IMAGE UPLOAD (generic)
+═══════════════════════════════════════════ */
+const sectionImages = {};
+
+function handleSectionImg(e, key, boxId) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImage(file, data => {
+    sectionImages[key] = data;
+    showSectionImgPreview(key, boxId, data);
+  });
+}
+function handleSectionImgDrop(e, key) {
+  e.preventDefault();
+  const el = e.currentTarget;
+  const boxId = el.id;
+  el.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    compressImage(file, data => {
+      sectionImages[key] = data;
+      showSectionImgPreview(key, boxId, data);
+    });
+  }
+}
+function showSectionImgPreview(key, boxId, src) {
+  const pfx = key;
+  const promptEl = document.getElementById(pfx + '-prompt');
+  const previewEl = document.getElementById(pfx + '-preview');
+  const imgEl = document.getElementById(pfx + '-src');
+  if (promptEl) promptEl.style.display = 'none';
+  if (previewEl) previewEl.style.display = 'inline-block';
+  if (imgEl) imgEl.src = src;
+}
+function removeSectionImg(key, boxId, e) {
+  if (e) e.stopPropagation();
+  sectionImages[key] = null;
+  const promptEl = document.getElementById(key + '-prompt');
+  const previewEl = document.getElementById(key + '-preview');
+  const imgEl = document.getElementById(key + '-src');
+  if (promptEl) promptEl.style.display = '';
+  if (previewEl) previewEl.style.display = 'none';
+  if (imgEl) imgEl.src = '';
+}
+
+/* ═══════════════════════════════════════════
+   SAVE SECTION
+═══════════════════════════════════════════ */
+function saveSection(key) {
+  const d = loadData();
+  switch(key) {
+    case 'hero':
+      d.hero = {
+        eyebrow: v('hero-eyebrow'),
+        title1: v('hero-title1'), title2: v('hero-title2'),
+        subtitle: v('hero-subtitle'),
+        cta1: v('hero-cta1'), cta2: v('hero-cta2'),
+        img: sectionImages['hero-img'] || d.hero?.img || null
+      }; break;
+    case 'about':
+      d.about = {
+        label: v('about-label'),
+        title1: v('about-title1'), title2: v('about-title2'), title3: v('about-title3'),
+        body1: v('about-body1'), body2: v('about-body2'),
+        img: sectionImages['about-img'] || d.about?.img || null,
+        stats: [
+          { num: v('stat1-num'), lbl: v('stat1-lbl') },
+          { num: v('stat2-num'), lbl: v('stat2-lbl') },
+          { num: v('stat3-num'), lbl: v('stat3-lbl') },
+          { num: v('stat4-num'), lbl: v('stat4-lbl') },
+        ]
+      }; break;
+    case 'capabilities':
+      d.capabilities = {
+        title: v('cap-title'), title2: v('cap-title2'),
+        lead: v('cap-lead'),
+        cards: collectCapCards()
+      }; break;
+    case 'paper':
+      d.paper = {
+        title: v('paper-title'), title2: v('paper-title2'),
+        lead: v('paper-lead'),
+        cards: collectPaperCards()
+      }; break;
+    case 'machines':
+      d.machines = {
+        title: v('mach-title'), title2: v('mach-title2'),
+        lead: v('mach-lead'),
+        list: collectMachines(),
+        img: sectionImages['mach-img'] || d.machines?.img || null
+      }; break;
+    case 'indigo':
+      d.indigo = {
+        title: v('indigo-title'), title2: v('indigo-title2'),
+        desc: v('indigo-desc'),
+        img: sectionImages['indigo-img'] || d.indigo?.img || null,
+        benefits: collectBenefits()
+      }; break;
+    case 'clients':
+      d.clients = {
+        title: v('clients-title'), title2: v('clients-title2'),
+        lead: v('clients-lead'),
+        logos: collectClientLogos(),
+        testimonials: collectTestimonials()
+      }; break;
+    case 'gallery':
+      d.gallery = {
+        title: v('gallery-title'), subtitle: v('gallery-subtitle'),
+        slots: collectGallerySlots()
+      }; break;
+    case 'order':
+      d.order = {
+        title: v('order-title'), title2: v('order-title2'),
+        lead: v('order-lead'), urgent: v('order-urgent'),
+        steps: collectSteps()
+      }; break;
+    case 'contact':
+      d.contact = {
+        title: v('contact-title'), title2: v('contact-title2'),
+        addr1: v('contact-addr1'), addr2: v('contact-addr2'),
+        phone1: v('contact-phone1'), phone2: v('contact-phone2'),
+        email1: v('contact-email1'), email2: v('contact-email2'),
+        hours: v('contact-hours'), closed: v('contact-closed'),
+        mapurl: v('contact-mapurl'),
+        ig: v('contact-ig'), li: v('contact-li'), fb: v('contact-fb')
+      }; break;
+  }
+  saveData(d);
+  showToast('Section saved successfully!', 'success');
+}
+
+function saveAll() {
+  ['hero','about','capabilities','paper','machines','indigo','clients','gallery','order','contact'].forEach(s => saveSection(s));
+}
+
+function v(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+/* ═══════════════════════════════════════════
+   CAPABILITIES CARDS
+═══════════════════════════════════════════ */
+const defaultCapCards = [
+  { num:'01', title:'Design Studio', desc:'In-house creative team to conceptualise, typeset, and prepare artwork for any print format — from business stationery to mailers.' },
+  { num:'02', title:'Pre-Press & Proofing', desc:'Colour-calibrated proofing, trapping, and imposition done in-house — your print runs start right, every time.' },
+  { num:'03', title:'Digital Printing', desc:'HP Indigo and high-speed digital for short-run, variable data, and rush print jobs with zero setup charges.' },
+  { num:'04', title:'Offset Printing', desc:'4- and 5-colour offset presses for long-run jobs where consistent ink density and Pantone accuracy are paramount.' },
+  { num:'05', title:'Finishing', desc:'UV, aqueous lamination, hot foil, embossing, die-cutting, and perfect binding — all done on-site for faster turnaround.' },
+  { num:'06', title:'Packaging & Dispatch', desc:'Secure packing with PAN-India courier delivery. Bulk orders managed with custom scheduling and tracking.' },
+];
+function renderCapCards(cards) {
+  const cont = document.getElementById('capCards');
+  cont.innerHTML = cards.map((c,i) => `
+    <div class="machine-edit-item" style="grid-template-columns:60px 1fr 2fr auto">
+      <input class="form-input" id="cap-num-${i}" value="${esc(c.num)}" placeholder="01">
+      <input class="form-input" id="cap-title-${i}" value="${esc(c.title)}" placeholder="Title">
+      <input class="form-input" id="cap-desc-${i}" value="${esc(c.desc)}" placeholder="Description">
+      <button class="btn btn-danger btn-sm" onclick="removeCapCard(${i})">✕</button>
+    </div>
+  `).join('');
+}
+function collectCapCards() {
+  const items = document.querySelectorAll('#capCards .machine-edit-item');
+  return Array.from(items).map((_, i) => ({
+    num: v(`cap-num-${i}`), title: v(`cap-title-${i}`), desc: v(`cap-desc-${i}`)
+  }));
+}
+function removeCapCard(i) {
+  const cards = collectCapCards();
+  cards.splice(i, 1);
+  renderCapCards(cards);
+}
+
+/* ═══════════════════════════════════════════
+   PAPER WORKS CARDS
+═══════════════════════════════════════════ */
+const defaultPaperCards = [
+  { title:'Business Cards', desc:'Precision-cut, digitally printed on premium stocks — cotton, linen, soft-touch, and beyond.', tag:'Digital & Offset', img:null },
+  { title:'Letterheads & Envelopes', desc:'Corporate identity sets crafted on fine writing papers, window and pocket envelopes included.', tag:'Offset Print', img:null },
+  { title:'Brochures & Catalogues', desc:'Saddle-stitched, perfect-bound, or spiral — rich imagery and deep blacks across every spread.', tag:'HP Indigo', img:null },
+  { title:'Presentation Folders', desc:'Pocket folders, spine folders, and portfolio cases in luxe duplex and uncoated stocks.', tag:'Offset + Foiling', img:null },
+  { title:'Notepads & Journals', desc:'Custom-printed notepads, spiral notebooks, and hardbound journals with branded covers.', tag:'All Formats', img:null },
+  { title:'Packaging & Boxes', desc:'Rigid and folded carton boxes with full-colour print, embossing, and foil stamping for luxury unboxing.', tag:'Custom Die-Cut', img:null },
+];
+let paperCardImages = {};
+function renderPaperCards(cards) {
+  const cont = document.getElementById('paperCards');
+  cont.innerHTML = cards.map((c, i) => `
+    <div class="edit-card">
+      <div class="form-row" style="grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:start">
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input class="form-input" id="pc-title-${i}" value="${esc(c.title)}" placeholder="Product title">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tag</label>
+          <input class="form-input" id="pc-tag-${i}" value="${esc(c.tag)}" placeholder="e.g. Digital & Offset">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input class="form-input" id="pc-desc-${i}" value="${esc(c.desc)}" placeholder="Short description">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Card Image</label>
+        <div class="img-upload-box" style="padding:16px" ondragover="event.preventDefault()" ondrop="handlePaperCardImgDrop(event,${i})">
+          <input type="file" accept="image/*" onchange="handlePaperCardImg(event,${i})">
+          <div id="pc-img-prompt-${i}" ${c.img ? 'style="display:none"' : ''}>
+            <div style="font-size:12px;color:var(--text-muted)">↑ Click to upload (240 × 240px)</div>
+          </div>
+          <div id="pc-img-preview-${i}" style="display:${c.img ? 'inline-block' : 'none'}" class="img-preview-wrap">
+            <img class="img-preview" id="pc-img-src-${i}" src="${c.img||''}" alt="" style="max-height:100px">
+            <button class="img-remove" onclick="removePaperCardImg(${i},event)">×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  // re-populate images map
+  cards.forEach((c, i) => { if (c.img) paperCardImages[i] = c.img; });
+}
+function handlePaperCardImg(e, i) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImage(file, data => {
+    paperCardImages[i] = data;
+    const p = document.getElementById(`pc-img-prompt-${i}`);
+    const pv = document.getElementById(`pc-img-preview-${i}`);
+    const im = document.getElementById(`pc-img-src-${i}`);
+    if (p) p.style.display = 'none';
+    if (pv) pv.style.display = 'inline-block';
+    if (im) im.src = data;
+  });
+}
+function handlePaperCardImgDrop(e, i) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handlePaperCardImg({ target: { files: [file] } }, i);
+}
+function removePaperCardImg(i, e) {
+  if (e) e.stopPropagation();
+  paperCardImages[i] = null;
+  document.getElementById(`pc-img-prompt-${i}`).style.display = '';
+  document.getElementById(`pc-img-preview-${i}`).style.display = 'none';
+  document.getElementById(`pc-img-src-${i}`).src = '';
+}
+function collectPaperCards() {
+  const count = document.querySelectorAll('#paperCards .edit-card').length;
+  return Array.from({length: count}, (_, i) => ({
+    title: v(`pc-title-${i}`), tag: v(`pc-tag-${i}`),
+    desc: v(`pc-desc-${i}`), img: paperCardImages[i] || null
+  }));
+}
+
+/* ═══════════════════════════════════════════
+   MACHINES
+═══════════════════════════════════════════ */
+const defaultMachines = [
+  { num:'01', name:'HP Indigo 5500', desc:'7-colour digital press for short-to-medium runs with offset-quality results.' },
+  { num:'02', name:'Heidelberg Speedmaster 18 × 24', desc:'4-colour offset press for long-run, high-volume commercial print.' },
+  { num:'03', name:'Bobst Die-Cutter', desc:'Precision die-cutting and creasing for packaging and specialty formats.' },
+  { num:'04', name:'Heidelberg Speedmaster 28 × 40', desc:'Large-format 5-colour offset press for high-volume, wide-sheet commercial print with superior ink consistency.' },
+  { num:'05', name:'Heidelberg Single Colour Coater', desc:'Dedicated single-colour press with inline coating unit for spot UV, aqueous, and varnish applications.' },
+  { num:'06', name:'Polar Guillotine', desc:'115cm programmable cutting for precise sheet trimming at high speed.' },
+  { num:'07', name:'UV Lamination & Foiling', desc:'Spot UV, hot foil, matte/gloss lamination on a single automated line.' },
+];
+function renderMachines(list) {
+  document.getElementById('machineList').innerHTML = list.map((m, i) => `
+    <div class="machine-edit-item">
+      <input class="form-input" id="mach-num-${i}" value="${esc(m.num)}" placeholder="01">
+      <input class="form-input" id="mach-name-${i}" value="${esc(m.name)}" placeholder="Machine name">
+      <input class="form-input" id="mach-desc-${i}" value="${esc(m.desc)}" placeholder="Description">
+      <button class="btn btn-danger btn-sm" onclick="removeMachine(${i})">✕</button>
+    </div>
+  `).join('');
+}
+function addMachine() {
+  const list = collectMachines();
+  list.push({ num: String(list.length + 1).padStart(2,'0'), name:'', desc:'' });
+  renderMachines(list);
+}
+function removeMachine(i) {
+  const list = collectMachines();
+  list.splice(i, 1);
+  renderMachines(list);
+}
+function collectMachines() {
+  const items = document.querySelectorAll('#machineList .machine-edit-item');
+  return Array.from(items).map((_,i) => ({
+    num: v(`mach-num-${i}`), name: v(`mach-name-${i}`), desc: v(`mach-desc-${i}`)
+  }));
+}
+
+/* ═══════════════════════════════════════════
+   HP INDIGO BENEFITS
+═══════════════════════════════════════════ */
+const defaultBenefits = [
+  { title:'Faster Turnaround', desc:'No plate-making means jobs go from file to print in hours, not days. Perfect for last-minute requirements.' },
+  { title:'Pantone Accuracy', desc:'97% Pantone colour matching with HP Indigo ElectroInk — your brand colours reproduced with total fidelity.' },
+  { title:'Variable Data', desc:'Personalise every single print — names, addresses, QR codes — with zero speed penalty for mass personalisation.' },
+  { title:'No Minimum Quantity', desc:'Print as few as 50 or as many as 50,000 with consistent, uniform quality across the entire run.' },
+  { title:'Wide Substrate Range', desc:'From uncoated writing papers to synthetic films and specialty stocks — HP Indigo handles them all.' },
+  { title:'Certified Quality', desc:'HP Indigo certification guarantees press calibration, operator training, and process standards are met.' },
+];
+function renderBenefits(list) {
+  document.getElementById('benefitsList').innerHTML = list.map((b, i) => `
+    <div class="benefit-edit-item">
+      <input class="form-input" id="ben-title-${i}" value="${esc(b.title)}" placeholder="Benefit title">
+      <input class="form-input" id="ben-desc-${i}" value="${esc(b.desc)}" placeholder="Description">
+    </div>
+  `).join('');
+}
+function collectBenefits() {
+  const items = document.querySelectorAll('#benefitsList .benefit-edit-item');
+  return Array.from(items).map((_,i) => ({
+    title: v(`ben-title-${i}`), desc: v(`ben-desc-${i}`)
+  }));
+}
+
+/* ═══════════════════════════════════════════
+   CLIENT LOGOS
+═══════════════════════════════════════════ */
+const clientLogoData = {};
+function renderClientLogos(logos) {
+  const grid = document.getElementById('clientLogos');
+  grid.innerHTML = Array.from({length: 10}, (_, i) => `
+    <div class="client-logo-slot" id="cl-slot-${i}" onclick="document.getElementById('cl-input-${i}').click()">
+      <input type="file" id="cl-input-${i}" accept="image/*" onchange="handleClientLogo(event,${i})" style="display:none">
+      <img id="cl-img-${i}" src="${logos[i]||''}" alt="" style="${logos[i]?'display:block':'display:none'}">
+      <button class="client-logo-rm" onclick="removeClientLogo(${i},event)" title="Remove">×</button>
+      <span class="client-logo-num" id="cl-num-${i}" style="${logos[i]?'display:none':''}">Logo ${i+1}</span>
+    </div>
+  `).join('');
+  logos.forEach((l, i) => { if (l) clientLogoData[i] = l; });
+}
+function handleClientLogo(e, i) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImage(file, data => {
+    clientLogoData[i] = data;
+    document.getElementById(`cl-img-${i}`).src = data;
+    document.getElementById(`cl-img-${i}`).style.display = 'block';
+    document.getElementById(`cl-num-${i}`).style.display = 'none';
+  }, 400);
+}
+function removeClientLogo(i, e) {
+  e.stopPropagation();
+  clientLogoData[i] = null;
+  document.getElementById(`cl-img-${i}`).style.display = 'none';
+  document.getElementById(`cl-img-${i}`).src = '';
+  document.getElementById(`cl-num-${i}`).style.display = '';
+}
+function collectClientLogos() {
+  return Array.from({length: 10}, (_, i) => clientLogoData[i] || null);
+}
+
+/* ═══════════════════════════════════════════
+   TESTIMONIALS
+═══════════════════════════════════════════ */
+const defaultTestimonials = [
+  { quote: '"House of Arth delivered our entire brand stationery suite on time, and the quality was simply outstanding. Their HP Indigo output is indistinguishable from offset."', author: 'Director, Hospitality Brand — New Delhi' },
+  { quote: '"We\'ve been printing our annual reports and client gifts with Arth for five years. The consistency and attention to detail is unmatched in Delhi."', author: 'Marketing Head, Financial Services Firm' },
+  { quote: '"From foil business cards to embossed packaging — they understand luxury print. Arth is the only press we trust for our high-end retail collateral."', author: 'Brand Manager, Luxury Retail House' },
+];
+function renderTestimonials(list) {
+  document.getElementById('testimonialsList').innerHTML = list.map((t, i) => `
+    <div class="testimonial-edit-item">
+      <div class="form-group">
+        <label class="form-label">Quote ${i+1}</label>
+        <textarea class="form-textarea" id="t-quote-${i}" rows="3" placeholder="Quote text…">${esc(t.quote)}</textarea>
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label class="form-label">Attribution</label>
+        <input class="form-input" id="t-author-${i}" value="${esc(t.author)}" placeholder="Name, Role — Company">
+      </div>
+    </div>
+  `).join('');
+}
+function collectTestimonials() {
+  return Array.from({length: 3}, (_, i) => ({
+    quote: document.getElementById(`t-quote-${i}`)?.value || '',
+    author: v(`t-author-${i}`)
+  }));
+}
+
+/* ═══════════════════════════════════════════
+   ORDER STEPS
+═══════════════════════════════════════════ */
+const defaultSteps = [
+  { title:'Submit Your Brief', desc:'Fill the form with your requirements, quantities, and deadlines.' },
+  { title:'We Prepare a Quote', desc:'Our team reviews your specs and sends a detailed quote within 24 hours.' },
+  { title:'Artwork & Approval', desc:'Share your artwork or we design it for you. Digital proofs approved before printing.' },
+  { title:'Print & Deliver', desc:'We print, finish, pack, and dispatch to your door across India.' },
+];
+function renderSteps(list) {
+  document.getElementById('stepsList').innerHTML = list.map((s, i) => `
+    <div class="step-edit-item">
+      <div style="font-family:var(--font-display);font-size:22px;color:var(--gold);padding-top:8px">${i+1}</div>
+      <input class="form-input" id="step-title-${i}" value="${esc(s.title)}" placeholder="Step title">
+      <input class="form-input" id="step-desc-${i}" value="${esc(s.desc)}" placeholder="Step description">
+    </div>
+  `).join('');
+}
+function collectSteps() {
+  const count = document.querySelectorAll('#stepsList .step-edit-item').length;
+  return Array.from({length: count}, (_, i) => ({
+    title: v(`step-title-${i}`), desc: v(`step-desc-${i}`)
+  }));
+}
+
+/* ═══════════════════════════════════════════
+   GALLERY
+═══════════════════════════════════════════ */
+let gallerySlots = [];
+let currentCaptionSlot = null;
+
+function renderGalleryGrid() {
+  const grid = document.getElementById('galleryAdminGrid');
+  grid.innerHTML = gallerySlots.map((slot, i) => `
+    <div class="gallery-slot ${slot.img ? 'has-image' : ''}" id="gs-${i}">
+      <input type="file" accept="image/*" onchange="handleGallerySlot(event,${i})">
+      <img id="gs-img-${i}" src="${slot.img||''}" alt="" class="${slot.img ? 'loaded' : ''}">
+      ${!slot.img ? `<div class="gallery-slot-num">${i+1}</div><div class="gallery-slot-label">Upload Photo</div>` : ''}
+      <div class="gallery-slot-overlay">
+        <button class="gallery-slot-edit" onclick="openCaptionModal(${i},event)">Caption</button>
+        <button class="gallery-slot-rm" onclick="removeGallerySlot(${i},event)">Remove</button>
+      </div>
+      ${slot.img ? `<div class="slot-caption-wrap"><div class="slot-caption">${esc(slot.caption||'No caption')}</div></div>` : ''}
+    </div>
+  `).join('');
+  document.getElementById('galleryCount').textContent = `${gallerySlots.filter(s=>s.img).length} of ${gallerySlots.length} slots filled`;
+}
+
+function handleGallerySlot(e, i) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImage(file, data => {
+    gallerySlots[i].img = data;
+    renderGalleryGrid();
+  });
+}
+function removeGallerySlot(i, e) {
+  if (e) e.stopPropagation();
+  gallerySlots[i].img = null;
+  gallerySlots[i].caption = '';
+  renderGalleryGrid();
+}
+function openCaptionModal(i, e) {
+  if (e) e.stopPropagation();
+  currentCaptionSlot = i;
+  document.getElementById('captionInput').value = gallerySlots[i].caption || '';
+  openModal('captionModal');
+}
+function saveCaption() {
+  if (currentCaptionSlot === null) return;
+  gallerySlots[currentCaptionSlot].caption = document.getElementById('captionInput').value.trim();
+  closeModal('captionModal');
+  renderGalleryGrid();
+}
+function addGallerySlot() {
+  gallerySlots.push({ img: null, caption: '' });
+  renderGalleryGrid();
+}
+function collectGallerySlots() { return gallerySlots; }
+
+/* ═══════════════════════════════════════════
+   BLOG
+═══════════════════════════════════════════ */
+const BLOG_KEY = 'arth_blog_posts';
+let blogCurrentId = null;
+let blogImageData = null;
+let blogQuill = null;
+let pendingInlineImage = null;
+
+async function getBlogPosts() {
+  try { return JSON.parse(localStorage.getItem(BLOG_KEY)) || []; } catch { return []; }
+}
+async function saveBlogPosts(posts) {
+  localStorage.setItem(BLOG_KEY, JSON.stringify(posts));
+  renderBlogSubList();
+}
+
+function renderBlogSubList() {
+  getBlogPosts().then(posts => {
+    const list = document.getElementById('blogSubList');
+    if (!posts.length) { list.innerHTML = '<div style="padding:8px 20px 8px 48px;font-size:11px;color:var(--mid-grey)">No posts yet</div>'; return; }
+    list.innerHTML = posts.map(p => `
+      <div class="blog-sub-item ${p.id === blogCurrentId ? 'active' : ''}" onclick="editBlogPost(${p.id})">
+        ${p.title || 'Untitled'}
+      </div>
+    `).join('');
+  });
+}
+
+function showBlogWelcome() {
+  document.getElementById('blogWelcome').style.display = 'flex';
+  document.getElementById('blogEditorWrap').style.display = 'none';
+  blogCurrentId = null;
+  renderBlogSubList();
+}
+
+function newBlogPost() {
+  buildBlogEditor(null);
+  showPanel('blogPanel', null);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
+async function editBlogPost(id) {
+  const posts = await getBlogPosts();
+  const post = posts.find(p => p.id === id);
+  if (post) { buildBlogEditor(post); showPanel('blogPanel', null); }
+}
+
+function buildBlogEditor(post) {
+  const isNew = !post;
+  blogCurrentId = post ? post.id : null;
+  blogImageData = post ? post.image || null : null;
+  blogQuill = null;
+
+  document.getElementById('blogWelcome').style.display = 'none';
+  const wrap = document.getElementById('blogEditorWrap');
+  wrap.style.display = 'block';
+
+  wrap.innerHTML = `
+    <div class="panel-header">
+      <h1>${isNew ? 'New <em>Post</em>' : 'Edit <em>Post</em>'}</h1>
+      <div class="panel-actions">
+        ${!isNew ? `<button class="btn btn-danger" onclick="confirmBlogDelete(${post.id})">Delete</button>` : ''}
+        <button class="btn btn-outline" onclick="showBlogWelcome()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBlogPost()">Publish Post</button>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="form-group">
+        <label class="form-label">Post Title *</label>
+        <input class="form-input" id="bf-title" placeholder="e.g. The Art of Letterpress Printing" value="${post ? esc(post.title) : ''}">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <input class="form-input" id="bf-category" placeholder="e.g. Craft, Design, News" value="${post ? esc(post.category||'') : ''}">
+          <span class="form-hint">Used for filtering on the blog page</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Publish Date</label>
+          <input class="form-input" id="bf-date" type="date" value="${post ? post.date.split('T')[0] : new Date().toISOString().split('T')[0]}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Excerpt</label>
+        <input class="form-input" id="bf-excerpt" maxlength="200" placeholder="A short summary shown in the card preview…" value="${post ? esc(post.excerpt||'') : ''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cover Image</label>
+        <div class="img-upload-box" id="blog-cover-box" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleBlogCoverDrop(event)">
+          <input type="file" accept="image/*" onchange="handleBlogCover(event)">
+          <div id="blog-cover-prompt">
+            <div class="img-upload-icon">↑</div>
+            <div class="img-upload-label">Drag & drop or click to upload</div>
+            <div class="img-upload-sub">Recommended: 1200 × 800px</div>
+          </div>
+          <div id="blog-cover-preview" style="display:none" class="img-preview-wrap">
+            <img class="img-preview" id="blog-cover-src" src="" alt="">
+            <button class="img-remove" onclick="removeBlogCover(event)">×</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Content *</label>
+        <div class="editor-quill-wrap" id="blogQuillWrap">
+          <div id="blogQuillEditor"></div>
+        </div>
+        <span class="form-hint" style="margin-top:6px;display:block">Full formatting: headings, bold, italic, font family (Google Fonts), colours, lists, links, inline images.</span>
+      </div>
+    </div>
+  `;
+
+  if (blogImageData) {
+    document.getElementById('blog-cover-prompt').style.display = 'none';
+    document.getElementById('blog-cover-preview').style.display = 'inline-block';
+    document.getElementById('blog-cover-src').src = blogImageData;
+  }
+
+  initBlogQuill(post ? post.content || '' : '');
+  renderBlogSubList();
+  document.getElementById('main').scrollTo({ top: 0 });
+}
+
+/* Quill with Google Fonts */
+function initBlogQuill(content) {
+  setTimeout(() => {
+    if (!document.getElementById('blogQuillEditor')) return;
+
+    // Register Google Fonts as whitelisted
+    const Font = Quill.import('formats/font');
+    Font.whitelist = ['cormorant','inter','playfair','lato','montserrat','raleway','opensans','nunito'];
+    Quill.register(Font, true);
+
+    const Size = Quill.import('attributors/style/size');
+    Size.whitelist = ['10px','12px','14px','16px','18px','20px','24px','28px','32px','36px','48px'];
+    Quill.register(Size, true);
+
+    blogQuill = new Quill('#blogQuillEditor', {
+      theme: 'snow',
+      placeholder: 'Write your post content here…',
+      modules: {
+        toolbar: {
+          container: [
+            [{ font: ['cormorant','inter','playfair','lato','montserrat','raleway','opensans','nunito'] }],
+            [{ size: ['10px','12px','14px','16px','18px','20px','24px','28px','32px','36px','48px'] }],
+            [{ header: [1,2,3,false] }],
+            ['bold','italic','underline','strike'],
+            [{ color: [] }, { background: [] }],
+            [{ align: [] }],
+            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+            ['blockquote','code-block'],
+            ['link','image'],
+            ['clean']
+          ],
+          handlers: { image: openImgModal }
+        }
+      }
+    });
+
+    // Apply font CSS classes to Quill fonts dropdown labels
+    const picker = document.querySelector('.ql-font .ql-picker-options');
+    if (picker) {
+      const labels = { cormorant:'Cormorant Garamond', inter:'Inter', playfair:'Playfair Display', lato:'Lato', montserrat:'Montserrat', raleway:'Raleway', opensans:'Open Sans', nunito:'Nunito' };
+      picker.querySelectorAll('.ql-picker-item').forEach(item => {
+        const val = item.dataset.value;
+        if (labels[val]) {
+          item.textContent = labels[val];
+          item.style.fontFamily = labels[val];
+        }
+      });
+    }
+
+    if (content) blogQuill.root.innerHTML = content;
+  }, 80);
+}
+
+/* blog cover image */
+function handleBlogCover(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImage(file, data => {
+    blogImageData = data;
+    document.getElementById('blog-cover-prompt').style.display = 'none';
+    document.getElementById('blog-cover-preview').style.display = 'inline-block';
+    document.getElementById('blog-cover-src').src = data;
+  });
+}
+function handleBlogCoverDrop(e) {
+  e.preventDefault();
+  document.getElementById('blog-cover-box').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleBlogCover({ target: { files: [file] } });
+}
+function removeBlogCover(e) {
+  e.stopPropagation();
+  blogImageData = null;
+  document.getElementById('blog-cover-prompt').style.display = '';
+  document.getElementById('blog-cover-preview').style.display = 'none';
+  document.getElementById('blog-cover-src').src = '';
+}
+
+/* save blog post */
+async function saveBlogPost() {
+  const title = v('bf-title');
+  const content = blogQuill ? blogQuill.root.innerHTML.trim() : '';
+  const textOnly = blogQuill ? blogQuill.getText().trim() : '';
+  if (!title) { showToast('Please enter a title.', 'error'); return; }
+  if (!textOnly) { showToast('Please enter some content.', 'error'); return; }
+  const posts = await getBlogPosts();
+  const postData = {
+    id: blogCurrentId || Date.now(),
+    title, category: v('bf-category') || 'General',
+    date: v('bf-date') || new Date().toISOString(),
+    excerpt: v('bf-excerpt'),
+    content, image: blogImageData || null,
+  };
+  if (blogCurrentId) {
+    const idx = posts.findIndex(p => p.id === blogCurrentId);
+    if (idx > -1) posts[idx] = postData; else posts.unshift(postData);
+  } else {
+    posts.unshift(postData);
+    blogCurrentId = postData.id;
+  }
+  await saveBlogPosts(posts);
+  showToast('Post published!', 'success');
+  buildBlogEditor(postData);
+}
+
+/* delete blog post */
+function confirmBlogDelete(id) {
+  document.getElementById('confirmTitle').textContent = 'Delete Post?';
+  document.getElementById('confirmMsg').textContent = 'This action cannot be undone. The post will be permanently removed.';
+  document.getElementById('confirmOkBtn').onclick = async () => {
+    const posts = await getBlogPosts();
+    await saveBlogPosts(posts.filter(p => p.id !== id));
+    closeModal('confirmModal');
+    showBlogWelcome();
+    showToast('Post deleted.', 'success');
+  };
+  openModal('confirmModal');
+}
+
+/* image insert modal for blog */
+function openImgModal() {
+  pendingInlineImage = null;
+  document.getElementById('modalThumb').style.display = 'none';
+  document.getElementById('modalThumb').src = '';
+  document.getElementById('imgUrlInput').value = '';
+  document.getElementById('modalUrlThumb').style.display = 'none';
+  document.querySelectorAll('.img-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('.img-tab-panel').forEach((p,i) => p.classList.toggle('active', i===0));
+  openModal('imgInsertModal');
+}
+function switchImgTab(tab, el) {
+  document.querySelectorAll('.img-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.img-tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+function handleModalFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  compressImage(file, data => {
+    pendingInlineImage = data;
+    const thumb = document.getElementById('modalThumb');
+    thumb.src = data; thumb.style.display = 'block';
+  });
+}
+function handleModalDrop(e) {
+  e.preventDefault();
+  document.getElementById('modalDropZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleModalFileSelect({ target: { files: [file] } });
+}
+function previewUrlImg() {
+  const url = document.getElementById('imgUrlInput').value.trim();
+  const thumb = document.getElementById('modalUrlThumb');
+  if (url) { thumb.src = url; thumb.style.display = 'block'; pendingInlineImage = url; }
+  else { thumb.style.display = 'none'; pendingInlineImage = null; }
+}
+function confirmInsertImage() {
+  if (!pendingInlineImage) { showToast('Please select or enter an image first.', 'error'); return; }
+  if (blogQuill) {
+    const range = blogQuill.getSelection(true);
+    const idx = range ? range.index : blogQuill.getLength();
+    blogQuill.insertEmbed(idx, 'image', pendingInlineImage);
+    blogQuill.setSelection(idx + 1);
+  }
+  closeModal('imgInsertModal');
+  showToast('Image inserted.', 'success');
+}
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+function esc(str='') {
+  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ═══════════════════════════════════════════
+   INIT CMS — populate all panels from storage
+═══════════════════════════════════════════ */
+function initCMS() {
+  const d = loadData();
+
+  /* HERO */
+  const h = d.hero || {};
+  setV('hero-eyebrow', h.eyebrow || 'New Delhi, since 2006');
+  setV('hero-title1', h.title1 || 'Where Paper Meets');
+  setV('hero-title2', h.title2 || 'Precision');
+  setV('hero-subtitle', h.subtitle || 'Premium stationery & print solutions — from luxury business cards to large-format collateral.');
+  setV('hero-cta1', h.cta1 || 'View Our Work');
+  setV('hero-cta2', h.cta2 || 'Get In Touch');
+  if (h.img) { sectionImages['hero-img'] = h.img; showSectionImgPreview('hero-img','hero-img-box', h.img); }
+
+  /* ABOUT */
+  const a = d.about || {};
+  setV('about-label', a.label || 'About Us');
+  setV('about-title1', a.title1 || 'Crafting Stories');
+  setV('about-title2', a.title2 || 'on');
+  setV('about-title3', a.title3 || 'Paper');
+  setV('about-body1', a.body1 || 'For over two decades, House of Arth has been New Delhi\'s most trusted name in premium stationery and commercial print. Nestled in Naraina Industrial Area, our facility brings together cutting-edge machinery and artisan expertise under one roof.');
+  setV('about-body2', a.body2 || 'We believe every printed piece is a reflection of your brand\'s soul. From delicate letterhead to bold packaging, we bring precision, passion, and an unrelenting eye for detail to everything we do.');
+  if (a.img) { sectionImages['about-img'] = a.img; showSectionImgPreview('about-img','about-img-box', a.img); }
+  const stats = a.stats || [{num:'25+',lbl:'Years in Business'},{num:'500+',lbl:'Happy Clients'},{num:'13',lbl:'Production Machines'},{num:'HP',lbl:'Indigo Certified'}];
+  stats.forEach((s, i) => { setV(`stat${i+1}-num`, s.num); setV(`stat${i+1}-lbl`, s.lbl); });
+
+  /* CAPABILITIES */
+  const cap = d.capabilities || {};
+  setV('cap-title', cap.title || 'Everything You Need,');
+  setV('cap-title2', cap.title2 || 'One Address');
+  setV('cap-lead', cap.lead || 'From ideation to dispatch — our end-to-end print ecosystem means no middlemen, no delays, and no compromise on quality.');
+  renderCapCards(cap.cards || defaultCapCards);
+
+  /* PAPER */
+  const pw = d.paper || {};
+  setV('paper-title', pw.title || 'A Full Range of');
+  setV('paper-title2', pw.title2 || 'Print Collateral');
+  setV('paper-lead', pw.lead || 'Whatever your stationery needs, we have the expertise and equipment to deliver with finesse.');
+  renderPaperCards(pw.cards || defaultPaperCards);
+
+  /* MACHINES */
+  const mc = d.machines || {};
+  setV('mach-title', mc.title || 'Industry-Grade');
+  setV('mach-title2', mc.title2 || 'Equipment');
+  setV('mach-lead', mc.lead || 'Our plant runs some of India\'s finest print machinery — maintained to exacting standards for consistent, world-class output.');
+  renderMachines(mc.list || defaultMachines);
+  if (mc.img) { sectionImages['mach-img'] = mc.img; showSectionImgPreview('mach-img','mach-img-box', mc.img); }
+
+  /* INDIGO */
+  const ind = d.indigo || {};
+  setV('indigo-title', ind.title || 'The Gold Standard in');
+  setV('indigo-title2', ind.title2 || 'Digital Print');
+  setV('indigo-desc', ind.desc || "HP Indigo's liquid electrophotographic (LEP) technology delivers an unparalleled combination of quality, versatility, and speed — making it the press of choice for premium brands worldwide.");
+  if (ind.img) { sectionImages['indigo-img'] = ind.img; showSectionImgPreview('indigo-img','indigo-img-box', ind.img); }
+  renderBenefits(ind.benefits || defaultBenefits);
+
+  /* CLIENTS */
+  const cl = d.clients || {};
+  setV('clients-title', cl.title || 'Brands That Trust');
+  setV('clients-title2', cl.title2 || 'House of Arth');
+  setV('clients-lead', cl.lead || 'From startups to enterprise — our clients span hospitality, finance, luxury retail, healthcare, and beyond.');
+  renderClientLogos(cl.logos || Array(10).fill(null));
+  renderTestimonials(cl.testimonials || defaultTestimonials);
+
+  /* GALLERY */
+  const gal = d.gallery || {};
+  setV('gallery-title', gal.title || 'Our Portfolio');
+  setV('gallery-subtitle', gal.subtitle || 'A curated selection of our finest print work');
+  gallerySlots = gal.slots || Array(20).fill(null).map(() => ({ img: null, caption: '' }));
+  renderGalleryGrid();
+
+  /* ORDER */
+  const ord = d.order || {};
+  setV('order-title', ord.title || 'Ready to');
+  setV('order-title2', ord.title2 || 'Print?');
+  setV('order-lead', ord.lead || 'Fill in your requirements and we\'ll get back within 24 hours with a detailed quote.');
+  setV('order-urgent', ord.urgent || 'Need something urgent? Call us directly at +91 98102 60486 or WhatsApp us for same-day turnaround on digital jobs.');
+  renderSteps(ord.steps || defaultSteps);
+
+  /* CONTACT */
+  const con = d.contact || {};
+  setV('contact-title', con.title || 'Visit Us or');
+  setV('contact-title2', con.title2 || 'Get in Touch');
+  setV('contact-addr1', con.addr1 || 'A-31, Industrial Area Phase I');
+  setV('contact-addr2', con.addr2 || 'Block A, Naraina Industrial Area Phase 1, Naraina, New Delhi, Delhi 110028');
+  setV('contact-phone1', con.phone1 || '+91 98102 60486');
+  setV('contact-phone2', con.phone2 || '+91 011 4504088847');
+  setV('contact-email1', con.email1 || 'info@houseofarth.in');
+  setV('contact-email2', con.email2 || 'order@houseofarth.in');
+  setV('contact-hours', con.hours || 'Monday – Saturday: 9:30 AM – 7:00 PM');
+  setV('contact-closed', con.closed || 'Sunday: Closed');
+  setV('contact-mapurl', con.mapurl || 'https://maps.google.com/maps?q=A-31+Naraina+Industrial+Area+Phase+1+New+Delhi+Delhi+110028&output=embed&z=16');
+  setV('contact-ig', con.ig || '');
+  setV('contact-li', con.li || '');
+  setV('contact-fb', con.fb || '');
+
+  /* BLOG */
+  renderBlogSubList();
+}
+
+function setV(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.tagName === 'TEXTAREA') el.value = val;
+  else el.value = val;
+}
+
+/* ═══════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════ */
+if (sessionStorage.getItem(AUTH_KEY) === '1') {
+  initCMS();
+}
+</script>
+</body>
+</html>
