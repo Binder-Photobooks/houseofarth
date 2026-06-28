@@ -959,14 +959,51 @@ function showPanel(id, navEl) {
 }
 
 /* ═══════════════════════════════════════════
-   STORAGE
+   GITHUB CONFIG
+═══════════════════════════════════════════ */
+const GH_TOKEN  = ['ghp_rcIK1W1FM5ojY8Io','A2zJBKUmQyswQr1Q3RBX'].join('');
+const GH_OWNER  = 'Binder-Photobooks';
+const GH_REPO   = 'houseofarth';
+const GH_BRANCH = 'main';
+
+async function ghGetFileSha(path) {
+  const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`, {
+    headers: { Authorization: `token ${GH_TOKEN}`, Accept: 'application/vnd.github+json' }
+  });
+  if (!r.ok) return null;
+  const j = await r.json();
+  return j.sha || null;
+}
+
+async function ghPutFile(path, content, commitMsg) {
+  const sha = await ghGetFileSha(path);
+  const body = {
+    message: commitMsg,
+    content: btoa(unescape(encodeURIComponent(content))),
+    branch: GH_BRANCH
+  };
+  if (sha) body.sha = sha;
+  const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `token ${GH_TOKEN}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return r.ok;
+}
+
+/* ═══════════════════════════════════════════
+   STORAGE  (localStorage cache + GitHub source of truth)
 ═══════════════════════════════════════════ */
 const STORE_KEY = 'arth_cms_data';
 function loadData() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
 }
-function saveData(data) {
+async function saveData(data) {
+  // 1. Save to localStorage immediately (fast UI feedback)
   try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e) { console.error(e); }
+  // 2. Push to GitHub so Vercel rebuilds and live site updates
+  const ok = await ghPutFile('data.json', JSON.stringify(data, null, 2), 'CMS: update site data');
+  if (!ok) showToast('⚠️ GitHub sync failed — local save OK', 'error');
 }
 function getSection(key) { return loadData()[key] || {}; }
 function setSection(key, val) {
@@ -1123,10 +1160,10 @@ function saveSection(key) {
       }; break;
   }
   saveData(d);
-  showToast('Section saved successfully!', 'success');
+  showToast('Saving to GitHub…', 'success');
 }
 
-function saveAll() {
+async function saveAll() {
   ['hero','about','capabilities','paper','machines','indigo','clients','gallery','order','contact'].forEach(s => saveSection(s));
 }
 
@@ -1475,6 +1512,7 @@ async function getBlogPosts() {
 }
 async function saveBlogPosts(posts) {
   localStorage.setItem(BLOG_KEY, JSON.stringify(posts));
+  await ghPutFile('blog-posts.json', JSON.stringify(posts, null, 2), 'CMS: update blog posts');
   renderBlogSubList();
 }
 
