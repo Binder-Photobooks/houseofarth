@@ -571,13 +571,10 @@
     document.getElementById('mobileMenu').classList.toggle('open');
   }
 
-  // ── LOAD DATA FROM GITHUB (via deployed data.json) ──
-  async function loadCmsData() {
-    try {
-      const r = await fetch('/data.json?v=' + Date.now());
-      if (r.ok) return await r.json();
-    } catch(e) {}
-    return {};
+  // ── LOAD DATA FROM ADMIN (localStorage) ──
+  const STORE_KEY = 'arth_cms_data';
+  function loadCmsData() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
   }
 
   // ── LIGHTBOX ──
@@ -653,8 +650,8 @@
   }
 
   // ── INIT ──
-  async function init() {
-    const data = await loadCmsData();
+  function init() {
+    const data = loadCmsData();
     const gallery = data.gallery || {};
 
     // Update hero text from admin data
